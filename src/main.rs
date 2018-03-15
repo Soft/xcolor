@@ -15,6 +15,8 @@ type RGB = (u8, u8, u8);
 
 #[derive(StructOpt)]
 struct Args {
+    #[structopt(short="s", long="selection", help="save to X selection")]
+    selection: bool,
     #[structopt(short="f", long="format", help="output format", default_value="hex")]
     format: Format
 }
