@@ -1,13 +1,51 @@
 extern crate xcb;
 extern crate failure;
-extern crate clap;
+#[macro_use]
+extern crate structopt;
 
+use std::str::FromStr;
 use failure::{Error, err_msg};
 use xcb::base::{Connection};
 use xcb::xproto;
 use xcb::base as xbase;
+use structopt::StructOpt;
 
 type RGB = (u8, u8, u8);
+
+
+#[derive(StructOpt)]
+struct Args {
+    #[structopt(short="f", long="format", help="output format", default_value="hex")]
+    format: Format
+}
+
+enum Format {
+    LowercaseHex,
+    UppercaseHex,
+    RGB
+}
+
+impl FromStr for Format {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "hex" => Ok(Format::LowercaseHex),
+            "HEX" => Ok(Format::UppercaseHex),
+            "rgb" => Ok(Format::RGB),
+            _ => Err(err_msg("Invalid format"))
+        }
+    }
+}
+
+impl Format {
+    fn format_color(&self, (r, g, b): RGB) -> String {
+        match self {
+            &Format::LowercaseHex => format!("#{:02x}{:02x}{:02x}", r, g, b),
+            &Format::UppercaseHex => format!("#{:02X}{:02X}{:02X}", r, g, b),
+            &Format::RGB => format!("rgb({}, {}, {})", r, g, b),
+        }
+    }
+}
 
 fn wait_for_location(conn: &Connection, root: xproto::Window) -> Result<Option<(i16, i16)>, Error> {
     let reply = xproto::grab_pointer(&conn,
@@ -71,21 +109,22 @@ fn window_color_at_point(conn: &Connection, window: xproto::Window, (x, y): (i16
     Ok((r, g, b))
 }
 
-fn run() -> Result<(), Error> {
+fn run(args: Args) -> Result<(), Error> {
     let (conn, screen) = Connection::connect(None)?;
     let screen = conn.get_setup().roots().nth(screen as usize)
         .ok_or_else(|| err_msg("Could not find screen"))?;
     let root = screen.root();
 
     if let Some(point) = wait_for_location(&conn, root)? {
-        let (r, g, b) = window_color_at_point(&conn, root, point)?;
-        println!("#{:02x}{:02x}{:02x}", r, g, b);
+        let color = window_color_at_point(&conn, root, point)?;
+        println!("{}", args.format.format_color(color));
     }
     Ok(())
 }
 
 fn main() {
-    if let Err(err) = run() {
+    let args = Args::from_args();
+    if let Err(err) = run(args) {
         eprintln!("error: {}", err);
         std::process::exit(1);
     }
