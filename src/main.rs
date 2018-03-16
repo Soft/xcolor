@@ -24,6 +24,7 @@ struct Args {
 enum Format {
     LowercaseHex,
     UppercaseHex,
+    Plain,
     RGB
 }
 
@@ -33,6 +34,7 @@ impl FromStr for Format {
         match s {
             "hex" => Ok(Format::LowercaseHex),
             "HEX" => Ok(Format::UppercaseHex),
+            "plain" => Ok(Format::Plain),
             "rgb" => Ok(Format::RGB),
             _ => Err(err_msg("Invalid format"))
         }
@@ -44,6 +46,7 @@ impl Format {
         match self {
             &Format::LowercaseHex => format!("#{:02x}{:02x}{:02x}", r, g, b),
             &Format::UppercaseHex => format!("#{:02X}{:02X}{:02X}", r, g, b),
+            &Format::Plain => format!("{};{};{}", r, g, b),
             &Format::RGB => format!("rgb({}, {}, {})", r, g, b),
         }
     }
