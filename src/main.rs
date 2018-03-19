@@ -15,8 +15,6 @@ type RGB = (u8, u8, u8);
 
 #[derive(StructOpt)]
 struct Args {
-    #[structopt(short="s", long="selection", help="save to X selection")]
-    selection: bool,
     #[structopt(short="f", long="format", help="output format", default_value="hex")]
     format: Format
 }
@@ -53,6 +51,21 @@ impl Format {
 }
 
 fn wait_for_location(conn: &Connection, root: xproto::Window) -> Result<Option<(i16, i16)>, Error> {
+    const XC_CROSSHAIR: u16 = 34;
+
+    let cursor_font = conn.generate_id();
+    let cursor = conn.generate_id();
+
+    xproto::open_font_checked(conn, cursor_font, "cursor").request_check()?;
+    xproto::create_glyph_cursor_checked(conn,
+                                        cursor,
+                                        cursor_font,
+                                        cursor_font,
+                                        XC_CROSSHAIR, XC_CROSSHAIR + 1,
+                                        0, 0, 0,
+                                        std::u16::MAX, std::u16::MAX, std::u16::MAX)
+        .request_check()?;
+
     let reply = xproto::grab_pointer(&conn,
                                      false,
                                      root,
@@ -60,7 +73,7 @@ fn wait_for_location(conn: &Connection, root: xproto::Window) -> Result<Option<(
                                      xproto::GRAB_MODE_ASYNC as u8,
                                      xproto::GRAB_MODE_ASYNC as u8,
                                      xbase::NONE,
-                                     xbase::NONE,
+                                     cursor,
                                      xbase::CURRENT_TIME)
         .get_reply()?;
     if reply.status() != xproto::GRAB_STATUS_SUCCESS as u8 {
@@ -104,7 +117,7 @@ fn window_color_at_point(conn: &Connection, window: xproto::Window, (x, y): (i16
         .get_reply()?;
     if reply.depth() != 24 {
         // TODO: Figure out what to do with these
-        return Err(err_msg("Unsupported depth"));
+        return Err(err_msg("Unsupported color depth"));
     }
     let base = (x as usize * 4) + ((y as usize) * (geometry.width() as usize * 4));
     let data = reply.data();
