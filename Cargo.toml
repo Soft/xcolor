@@ -7,6 +7,8 @@ license = "MIT"
 readme = "README.md"
 categories = ["command-line-utilities"]
 keywords = ["color", "utility", "color-picker", "x11"]
+homepage = "https://github.com/Soft/xcolor"
+repository = "https://github.com/Soft/xcolor"
 
 [dependencies]
 xcb = "0.8.2"
