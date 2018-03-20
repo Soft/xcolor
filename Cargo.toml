@@ -1,7 +1,7 @@
 [package]
 name = "xcolor"
 version = "0.1.0"
-description = "Color picker for X11"
+description = "Lightweight color picker for X11"
 authors = ["Samuel Laurén <samuel.lauren@iki.fi>"]
 license = "MIT"
 readme = "README.md"
@@ -9,6 +9,7 @@ categories = ["command-line-utilities"]
 keywords = ["color", "utility", "color-picker", "x11"]
 homepage = "https://github.com/Soft/xcolor"
 repository = "https://github.com/Soft/xcolor"
+exclude = ["docker/*"]
 
 [dependencies]
 xcb = "0.8.2"
