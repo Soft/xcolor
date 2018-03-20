@@ -1,7 +1,28 @@
 language: rust
-rust:
-  - stable
-  - beta
-  - nightly
-script:
-  - cargo test --verbose --all
+sudo: required
+jobs:
+  include:
+    - stage: test
+      script: cargo test --all --verbose
+    - stage: binary
+      services:
+        - docker
+      before_install:
+        - docker pull soft/rust-musl-builder-xcb
+        - docker run -it -d --name build soft/rust-musl-builder-xcb bash
+        - docker exec build git clone https://github.com/Soft/xcolor.git .
+        - docker exec build git checkout $TRAVIS_COMMIT
+        - mkdir target
+      script:
+        - docker exec build bash -c "PKG_CONFIG_PATH=/usr/local/musl/lib/pkgconfig RUSTFLAGS='-C link-arg=-L/usr/local/musl/lib -C link-arg=-lxcb -C link-arg=-L/usr/local/musl/lib -C link-arg=-lXau -C link-arg=-L/usr/local/musl/lib -C link-arg=-lXdmcp' cargo build --release"
+        - docker exec build strip target/x86_64-unknown-linux-musl/release/xcolor
+        - docker cp build:/home/rust/src/target/x86_64-unknown-linux-musl/release/xcolor target/xcolor
+      deploy:
+        provider: releases
+        api_key: $GITHUB_OAUTH_TOKEN
+        file: target/xcolor
+        skip_cleanup: true
+        on:
+          tags: true
+        
+
