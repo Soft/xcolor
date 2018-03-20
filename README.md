@@ -2,7 +2,7 @@
 
 [![Build Status](https://api.travis-ci.org/Soft/xcolor.svg?branch=master)](https://travis-ci.org/Soft/xcolor)
 [![Latest Version](https://img.shields.io/crates/v/xcolor.svg)](https://crates.io/crates/xcolor)
-[![Rust Documentation](https://img.shields.io/badge/api-rustdoc-blue.svg)](https://docs.rs/xcolor)
+[![Rust Documentation](https://img.shields.io/badge/api-rustdoc-blue.svg)](https://docs.rs/crate/xcolor)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Lightweight color picker for X11. Use mouse cursor to select colors visible
@@ -16,6 +16,12 @@ Currently, the easiest way to install xcolor is to use
 ``` shell
 $ cargo install xcolor
 ```
+
+Building and running `xcolor` requires [xcb](https://xcb.freedesktop.org)
+libraries to be present. There are also statically linked releases available on
+the [GitHub releases page](https://github.com/Soft/xcolor/releases). These
+binaries should work on most current Linux systems without any additional
+dependencies.
 
 ### Usage
 
