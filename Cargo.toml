@@ -15,6 +15,7 @@ exclude = ["docker/*"]
 xcb = "0.8.2"
 failure = "0.1.1"
 structopt = "0.2.5"
+nom = "3.2.1"
 
 [profile.release]
 lto = true

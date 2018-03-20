@@ -2,6 +2,8 @@ extern crate xcb;
 extern crate failure;
 #[macro_use]
 extern crate structopt;
+#[macro_use]
+extern crate nom;
 
 mod format;
 mod x11;
@@ -10,7 +12,7 @@ use failure::{Error, err_msg};
 use xcb::base::Connection;
 use structopt::StructOpt;
 
-use format::Format;
+use format::{Format, FormatColor};
 
 #[derive(StructOpt)]
 struct Args {
@@ -26,7 +28,7 @@ fn run(args: Args) -> Result<(), Error> {
 
     if let Some(point) = x11::wait_for_location(&conn, root)? {
         let color = x11::window_color_at_point(&conn, root, point)?;
-        println!("{}", args.format.format_color(color));
+        println!("{}", args.format.format(color));
     }
     Ok(())
 }
