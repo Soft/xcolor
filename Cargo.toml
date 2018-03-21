@@ -14,8 +14,8 @@ exclude = ["docker/*"]
 [dependencies]
 xcb = "0.8.2"
 failure = "0.1.1"
-structopt = "0.2.5"
 nom = "3.2.1"
+clap = "2.31.2"
 
 [profile.release]
 lto = true
