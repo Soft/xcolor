@@ -51,12 +51,12 @@ By default, the color values will be printed in lowercase hexadecimal format.
 The output format can be changed using the `-f FORMAT` switch. The possible
 format values are listed bellow:
 
-| Format Specifier | Description                       | Example             |
-| ---------------- | --------------------------------- | ------------------- |
-| `hex`            | Lowercase hexadecimal (default)   | #ff00ff             |
-| `HEX`            | Uppercase hexadecimal             | #00FF00             |
-| `rgb`            | Decimal RGB                       | rgb(255, 255, 255)  |
-| `plain`          | Decimal with semicolon separators | 0;0;0               |
+| Format Specifier | Description                       | Example               | Custom Format Equivalent |
+| ---------------- | --------------------------------- | --------------------- | ------------------------ |
+| `hex`            | Lowercase hexadecimal (default)   | `#ff00ff`             | `#%{02hr}%{02hg}%{02hb}` |
+| `HEX`            | Uppercase hexadecimal             | `#00FF00`             | `#%{02Hr}%{02Hg}%{02Hb}` |
+| `rgb`            | Decimal RGB                       | `rgb(255, 255, 255)`  | `rgb(%{r}, %{g}, %{b})`  |
+| `plain`          | Decimal with semicolon separators | `0;0;0`               | `%{r};%{g};%{b}`         |
 
 ### Custom Formatting
 
