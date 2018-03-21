@@ -69,7 +69,9 @@ named!(expansion<&str, FormatPart>,
                      }))));
 
 named!(parse_format_string<&str, FormatString>,
-       map!(many0!(alt_complete!(literal | expansion)), FormatString));
+       do_parse!(parts: many0!(alt_complete!(literal | expansion)) >>
+                 eof!() >>
+                 (FormatString(parts))));
 
 impl FromStr for FormatString {
     type Err = IError;
@@ -166,6 +168,8 @@ impl FormatColor for Format {
     }
 }
 
+// Tests
+
 #[test]
 fn test_literal() {
     assert_eq!(literal("foo%bar").unwrap().0, "%bar");
@@ -187,10 +191,12 @@ fn test_expansion() {
         FormatPart::Expansion { channel: Channel::R, .. } => (),
         _ => panic!()
     }
+
     match expansion("%{04b}").unwrap().1 {
         FormatPart::Expansion { channel: Channel::B, pad: Some(Pad { char: '0', len: 4 }), .. } => (),
         _ => panic!()
     }
+
     match expansion("%%").unwrap().1 {
         FormatPart::Literal(ref s) if s == "%" => (),
         _ => panic!()
@@ -201,6 +207,14 @@ fn test_expansion() {
 fn test_format_color() {
     let string: FormatString = "rgb(%{r}, %{g}, %{b})".parse().unwrap();
     assert_eq!(string.format((0, 255, 0)), "rgb(0, 255, 0)");
+
+    let string: Result<FormatString, _> = "".parse();
+    assert!(string.is_ok());
+
+    let should_err = vec!["%{}", "%}", "%{gg}", "%%%{-a}", "%a{}", "%foo"];
+    for case in should_err {
+        assert!(case.parse::<FormatString>().is_err());
+    }
 }
 
 
