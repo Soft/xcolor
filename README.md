@@ -29,7 +29,7 @@ Simply invoke the `xcolor` command to select a color. The selected color will be
 printed to the standard output. 
 
 ```
-xcolor 0.1.0
+xcolor 0.2.0
 Samuel Laurén <samuel.lauren@iki.fi>
 Lightweight color picker for X11
 
@@ -70,9 +70,9 @@ and supports a simple template language.
 the specifiers defined inside the block. Here are some examples of valid format
 strings and what they might translate to:
 
-| Format String            | Possible Output    |
+| Format String            | Example Output     |
 | ------------------------ | ------------------ |
-| `%{r} %{g} %{b}`         | `255, 0, 100`      |
+| `%{r}, %{g}, %{b}`       | `255, 0, 100`      |
 | `Green: %{-4g}`          | `Green: ---7`      |
 | `#%{02hr}%{02hg}%{02hb}` | `#00ff00`          |
 | `%{016Br}`               | `0000000000000011` |
