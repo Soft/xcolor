@@ -17,7 +17,7 @@ fn get_args() -> ArgMatches<'static> {
     App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
-        .about(env!("CARGO_PKG_NAME"))
+        .about(env!("CARGO_PKG_DESCRIPTION"))
         .arg(Arg::with_name("format")
              .short("f")
              .long("format")

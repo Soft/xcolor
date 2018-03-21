@@ -26,9 +26,30 @@ dependencies.
 ### Usage
 
 Simply invoke the `xcolor` command to select a color. The selected color will be
-printed to the standard output. By default, color values will be printed in
-lowercase hexadecimal format. The output format can be changed using the `-f
-FORMAT` switch. The possible format values are listed bellow:
+printed to the standard output. 
+
+```
+xcolor 0.1.0
+Samuel Laurén <samuel.lauren@iki.fi>
+Lightweight color picker for X11
+
+USAGE:
+    xcolor [OPTIONS]
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+OPTIONS:
+    -c, --custom <FORMAT>    Custom output format
+    -f, --format <NAME>      Output format (defaults to hex) [possible values: hex, HEX, plain, rgb]
+```
+
+### Formatting
+
+By default, the color values will be printed in lowercase hexadecimal format.
+The output format can be changed using the `-f FORMAT` switch. The possible
+format values are listed bellow:
 
 | Format Specifier | Description                       | Example             |
 | ---------------- | --------------------------------- | ------------------- |
@@ -36,3 +57,42 @@ FORMAT` switch. The possible format values are listed bellow:
 | `HEX`            | Uppercase hexadecimal             | #00FF00             |
 | `rgb`            | Decimal RGB                       | rgb(255, 255, 255)  |
 | `plain`          | Decimal with semicolon separators | 0;0;0               |
+
+### Custom Formatting
+
+The `-f` switch provides quick access to some commonly used formatting options.
+However, if custom output formatting is desired, this can be achieved using the
+`-c FORMAT` switch. The `FORMAT` parameter specifies a template for the output
+and supports a simple template language.
+
+`FORMAT` templates can contain special expansions that are written inside
+`%{...}` blocks. These blocks will be expanded into color values according to
+the specifiers defined inside the block. Here are some examples of valid format
+strings and what they might translate to:
+
+| Format String            | Possible Output    |
+| ------------------------ | ------------------ |
+| `%{r} %{g} %{b}`         | `255, 0, 100`      |
+| `Green: %{-4g}`          | `Green: ---7`      |
+| `#%{02hr}%{02hg}%{02hb}` | `#00ff00`          |
+| `%{016Br}`               | `0000000000000011` |
+
+Expansion blocks in format strings always contain a channel specifier (`r` for
+red, `g` for green, and `b` for blue). Additionally, they can contain an
+optional number format specifier (`h` for lowercase hexadecimal, `H` for
+uppercase hexadecimal, `o` for octal, `B` for binary, and `d` for decimal) and
+an optional padding specifier consisting of a character to use for padding and
+the length the string should be padded to. We can use these rules to decode the
+above example string:
+
+```
+  %{016Br}
+    | |||
+    | ||`- Channel (red)
+    | |`-- Number format specifier (binary)
+    | `--- Padding length (16)
+    `----- Character to use for padding (0)
+```
+
+In the output, we get the contents of the red color channel formatted in binary
+and padded with zeroes to be sixteen characters long.
