@@ -18,6 +18,9 @@ nom = "3.2.1"
 clap = "2.31.2"
 nix = "0.10.0"
 
+[build-dependencies]
+clap = "2.31.2"
+
 [profile.release]
 lto = true
 panic = "abort"
