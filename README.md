@@ -102,6 +102,7 @@ and padded with zeroes to be sixteen characters long.
 ### Saving to Selection
 
 By default, the selected color is printed to the standard output. By specifying
-the `-s` flag, `xcolor` can be instructed to instead save the color to X11's
-selection.
+the `-s` flag, xcolor can be instructed to instead save the color to X11's
+selection. The selection to use can be specified as an argument. Possible
+selection values are `primary` and `secondary`.
 
