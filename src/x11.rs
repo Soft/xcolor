@@ -1,9 +1,9 @@
 use std;
 
 use failure::{Error, err_msg};
+use xcb::base as xbase;
 use xcb::base::Connection;
 use xcb::xproto;
-use xcb::base as xbase;
 
 pub type RGB = (u8, u8, u8);
 

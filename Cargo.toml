@@ -1,6 +1,6 @@
 [package]
 name = "xcolor"
-version = "0.2.0"
+version = "0.3.0"
 description = "Lightweight color picker for X11"
 authors = ["Samuel Laurén <samuel.lauren@iki.fi>"]
 license = "MIT"
@@ -16,6 +16,7 @@ xcb = "0.8.2"
 failure = "0.1.1"
 nom = "3.2.1"
 clap = "2.31.2"
+nix = "0.10.0"
 
 [profile.release]
 lto = true

@@ -29,20 +29,22 @@ Simply invoke the `xcolor` command to select a color. The selected color will be
 printed to the standard output. 
 
 ```
-xcolor 0.2.0
+xcolor 0.3.0
 Samuel Laurén <samuel.lauren@iki.fi>
 Lightweight color picker for X11
 
 USAGE:
-    xcolor [OPTIONS]
+    xcolor [FLAGS] [OPTIONS]
 
 FLAGS:
-    -h, --help       Prints help information
-    -V, --version    Prints version information
+    -F, --foreground    Stay in the foreground
+    -h, --help          Prints help information
+    -V, --version       Prints version information
 
 OPTIONS:
-    -c, --custom <FORMAT>    Custom output format
-    -f, --format <NAME>      Output format (defaults to hex) [possible values: hex, HEX, plain, rgb]
+    -c, --custom <FORMAT>          Custom output format
+    -f, --format <NAME>            Output format (defaults to hex) [possible values: hex, HEX, plain, rgb]
+    -s, --selection <SELECTION>    Output to selection (defaults to primary) [possible values: primary, secondary]
 ```
 
 ### Formatting
@@ -96,3 +98,10 @@ above example string:
 
 In the output, we get the contents of the red color channel formatted in binary
 and padded with zeroes to be sixteen characters long.
+
+### Saving to Selection
+
+By default, the selected color is printed to the standard output. By specifying
+the `-s` flag, `xcolor` can be instructed to instead save the color to X11's
+selection.
+
