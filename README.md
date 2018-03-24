@@ -10,7 +10,11 @@ anywhere on the screen to view their RGB representation.
 
 ### Installation
 
-Currently, the easiest way to install xcolor is to use
+There are statically linked release binaries available on the [GitHub releases
+page](https://github.com/Soft/xcolor/releases). These binaries should work on
+most recent Linux systems without any additional dependencies or configuration.
+
+Alternatively, `xcolor` can be easily installed from the source using
 [cargo](https://doc.rust-lang.org/stable/cargo/):
 
 ``` shell
@@ -18,10 +22,12 @@ $ cargo install xcolor
 ```
 
 Building and running `xcolor` requires [xcb](https://xcb.freedesktop.org)
-libraries to be present. There are also statically linked releases available on
-the [GitHub releases page](https://github.com/Soft/xcolor/releases). These
-binaries should work on most current Linux systems without any additional
-dependencies.
+libraries to be present. To get the latest development version of `xcolor`, you
+can direct cargo to install from the git repository:
+
+``` shell
+$ cargo install --git 'https://github.com/Soft/xcolor.git'
+```
 
 ### Usage
 
@@ -37,7 +43,6 @@ USAGE:
     xcolor [FLAGS] [OPTIONS]
 
 FLAGS:
-    -F, --foreground    Stay in the foreground
     -h, --help          Prints help information
     -V, --version       Prints version information
 
@@ -46,6 +51,13 @@ OPTIONS:
     -f, --format <NAME>            Output format (defaults to hex) [possible values: hex, HEX, plain, rgb]
     -s, --selection <SELECTION>    Output to selection (defaults to primary) [possible values: primary, secondary]
 ```
+
+### Saving to Selection
+
+By default, the selected color is printed to the standard output. By specifying
+the `-s` flag, `xcolor` can be instructed to instead save the color to X11's
+selection. The selection to use can be specified as an argument. Possible
+selection values are `primary` (the default) and `secondary`.
 
 ### Formatting
 
@@ -98,11 +110,4 @@ above example string:
 
 In the output, we get the contents of the red color channel formatted in binary
 and padded with zeroes to be sixteen characters long.
-
-### Saving to Selection
-
-By default, the selected color is printed to the standard output. By specifying
-the `-s` flag, xcolor can be instructed to instead save the color to X11's
-selection. The selection to use can be specified as an argument. Possible
-selection values are `primary` and `secondary`.
 
