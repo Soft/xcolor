@@ -17,6 +17,7 @@ failure = "0.1.1"
 nom = "3.2.1"
 clap = "2.31.2"
 nix = "0.10.0"
+libc = "0.2.39"
 
 [build-dependencies]
 clap = "2.31.2"

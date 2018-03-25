@@ -1,17 +1,30 @@
 use std;
+use std::fs;
 use std::str::FromStr;
+use std::os::unix::io::IntoRawFd;
 use failure::{Error, err_msg};
-use nix::unistd::{fork, ForkResult};
+use nix::unistd::{self, fork, ForkResult};
 use xcb::base as xbase;
 use xcb::base::Connection;
 use xcb::xproto;
+use libc;
 
 pub fn into_daemon() -> Result<ForkResult, Error> {
     match fork()? {
         parent@ForkResult::Parent { .. } => Ok(parent),
         child@ForkResult::Child => {
+            unistd::setsid()?;
             std::env::set_current_dir("/")?;
-            // TODO: Point file handles to /dev/null
+            // Not sure if this is safe...
+            let dev_null = fs::OpenOptions::new()
+                .read(true)
+                .write(true)
+                .open("/dev/null")?
+                .into_raw_fd();
+            for fd in &[libc::STDIN_FILENO, libc::STDOUT_FILENO, libc::STDERR_FILENO] {
+                unistd::close(*fd)?;
+                unistd::dup2(dev_null, *fd)?;
+            }
             Ok(child)
         }
     }
@@ -45,6 +58,15 @@ impl Selection {
     }
 }
 
+// The selection daemon presented here is not a perfect implementation of the
+// ICCCM recommendation. Currently, it does not support large transfers and does
+// not verify that the requestor has received the data by monitoring for atom
+// deletion. Additionally, we do not support MULTIPLE and TIMESTAMP targets even
+// though those are required by the spec. However, this implements just enough
+// of the spec to work well enough in practice as color codes do not tend to be
+// that large. However, this assumption could of course fail with custom
+// templates.
+
 pub fn set_selection(conn: &Connection,
                      root: xproto::Window,
                      selection: Selection,
@@ -68,6 +90,7 @@ pub fn set_selection(conn: &Connection,
                           &[])
         .request_check()?;
 
+    // It would be better to use a real timestamp
     xproto::set_selection_owner(conn, window, selection, xbase::CURRENT_TIME)
         .request_check()?;
 
@@ -83,6 +106,8 @@ pub fn set_selection(conn: &Connection,
                     let event: &xproto::SelectionRequestEvent= unsafe {
                         xbase::cast_event(&event)
                     };
+
+                    // We should check the event timestamp
                     
                     let target = event.target();
                     let property = if target == utf8_string {

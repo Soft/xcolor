@@ -71,7 +71,7 @@ The output format can be changed using the `-f FORMAT` switch. The possible
 format values are listed bellow:
 
 | Format Specifier | Description                               | Example               | Custom Format Equivalent |
-| ---------------- | ---------------------------------         | --------------------- | ------------------------ |
+| ---------------- | ----------------------------------------- | --------------------- | ------------------------ |
 | `hex`            | Lowercase hexadecimal (default)           | `#ff00ff`             | `#%{02hr}%{02hg}%{02hb}` |
 | `HEX`            | Uppercase hexadecimal                     | `#00FF00`             | `#%{02Hr}%{02Hg}%{02Hb}` |
 | `hex!`           | Compact lowercase hexadecimal<sup>1</sup> | `#fff`                | Not expressible          |
@@ -79,7 +79,7 @@ format values are listed bellow:
 | `rgb`            | Decimal RGB                               | `rgb(255, 255, 255)`  | `rgb(%{r}, %{g}, %{b})`  |
 | `plain`          | Decimal with semicolon separators         | `0;0;0`               | `%{r};%{g};%{b}`         |
 
-**1:** The compact form refers to CSS three-letter color codes as specified by [CSS
+**1**: The compact form refers to CSS three-letter color codes as specified by [CSS
 Color Module Level 3](https://www.w3.org/TR/2018/PR-css-color-3-20180315/#rgb-color).
 If the color is not expressible in three-letter form, the regular six-letter
 form will be used.

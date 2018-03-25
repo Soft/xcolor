@@ -2,6 +2,7 @@ extern crate xcb;
 extern crate failure;
 extern crate clap;
 extern crate nix;
+extern crate libc;
 #[macro_use]
 extern crate nom;
 
