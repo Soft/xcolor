@@ -49,7 +49,7 @@ FLAGS:
 
 OPTIONS:
     -c, --custom <FORMAT>          Custom output format
-    -f, --format <NAME>            Output format (defaults to hex) [possible values: hex, HEX, plain, rgb]
+    -f, --format <NAME>            Output format (defaults to hex) [possible values: hex, HEX, hex!, HEX!, plain, rgb]
     -s, --selection <SELECTION>    Output to selection (defaults to primary) [possible values: primary, secondary]
 ```
 
@@ -70,12 +70,19 @@ By default, the color values will be printed in lowercase hexadecimal format.
 The output format can be changed using the `-f FORMAT` switch. The possible
 format values are listed bellow:
 
-| Format Specifier | Description                       | Example               | Custom Format Equivalent |
-| ---------------- | --------------------------------- | --------------------- | ------------------------ |
-| `hex`            | Lowercase hexadecimal (default)   | `#ff00ff`             | `#%{02hr}%{02hg}%{02hb}` |
-| `HEX`            | Uppercase hexadecimal             | `#00FF00`             | `#%{02Hr}%{02Hg}%{02Hb}` |
-| `rgb`            | Decimal RGB                       | `rgb(255, 255, 255)`  | `rgb(%{r}, %{g}, %{b})`  |
-| `plain`          | Decimal with semicolon separators | `0;0;0`               | `%{r};%{g};%{b}`         |
+| Format Specifier | Description                               | Example               | Custom Format Equivalent |
+| ---------------- | ---------------------------------         | --------------------- | ------------------------ |
+| `hex`            | Lowercase hexadecimal (default)           | `#ff00ff`             | `#%{02hr}%{02hg}%{02hb}` |
+| `HEX`            | Uppercase hexadecimal                     | `#00FF00`             | `#%{02Hr}%{02Hg}%{02Hb}` |
+| `hex!`           | Compact lowercase hexadecimal<sup>1</sup> | `#fff`                | Not expressible          |
+| `HEX!`           | Compact uppercase hexadecimal<sup>1</sup> | `#F0F`                | Not expressible          |
+| `rgb`            | Decimal RGB                               | `rgb(255, 255, 255)`  | `rgb(%{r}, %{g}, %{b})`  |
+| `plain`          | Decimal with semicolon separators         | `0;0;0`               | `%{r};%{g};%{b}`         |
+
+**1:** The compact form refers to CSS three-letter color codes as specified by [CSS
+Color Module Level 3](https://www.w3.org/TR/2018/PR-css-color-3-20180315/#rgb-color).
+If the color is not expressible in three-letter form, the regular six-letter
+form will be used.
 
 ### Custom Formatting
 

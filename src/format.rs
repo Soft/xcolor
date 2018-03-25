@@ -137,9 +137,15 @@ impl FormatColor for FormatString {
 
 // Formatting Shortcuts
 
+#[derive(PartialEq)]
+pub enum HexCompaction {
+    Compact,
+    Full
+}
+
 pub enum Format {
-    LowercaseHex,
-    UppercaseHex,
+    LowercaseHex(HexCompaction),
+    UppercaseHex(HexCompaction),
     Plain,
     RGB
 }
@@ -148,8 +154,10 @@ impl FromStr for Format {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "hex" => Ok(Format::LowercaseHex),
-            "HEX" => Ok(Format::UppercaseHex),
+            "hex" => Ok(Format::LowercaseHex(HexCompaction::Full)),
+            "HEX" => Ok(Format::UppercaseHex(HexCompaction::Full)),
+            "hex!" => Ok(Format::LowercaseHex(HexCompaction::Compact)),
+            "HEX!" => Ok(Format::UppercaseHex(HexCompaction::Compact)),
             "plain" => Ok(Format::Plain),
             "rgb" => Ok(Format::RGB),
             _ => Err(err_msg("Invalid format"))
@@ -157,11 +165,31 @@ impl FromStr for Format {
     }
 }
 
+
+fn is_compactable((r, g, b): RGB) -> bool {
+    fn compact(n: u8) -> bool {
+        (n >> 4) == (n & 0xf)
+    }
+    compact(r) && compact(g) && compact(b)
+}
+
 impl FormatColor for Format {
     fn format(&self, (r, g, b): RGB) -> String {
         match *self {
-            Format::LowercaseHex => format!("#{:02x}{:02x}{:02x}", r, g, b),
-            Format::UppercaseHex => format!("#{:02X}{:02X}{:02X}", r, g, b),
+           Format::LowercaseHex(ref comp) => {
+               if *comp == HexCompaction::Compact && is_compactable((r, g, b)) {
+                   format!("#{:x}{:x}{:x}", r & 0xf, g & 0xf, b & 0xf)
+               } else {
+                   format!("#{:02x}{:02x}{:02x}", r, g, b)
+               }
+            },
+           Format::UppercaseHex(ref comp) => {
+               if *comp == HexCompaction::Compact && is_compactable((r, g, b)) {
+                   format!("#{:X}{:X}{:X}", r & 0xf, g & 0xf, b & 0xf)
+               } else {
+                   format!("#{:02X}{:02X}{:02X}", r, g, b)
+               }
+            },
             Format::Plain => format!("{};{};{}", r, g, b),
             Format::RGB => format!("rgb({}, {}, {})", r, g, b),
         }
@@ -212,6 +240,15 @@ fn test_format_color() {
     for case in should_err {
         assert!(case.parse::<FormatString>().is_err());
     }
+}
+
+#[test]
+fn test_compaction() {
+    assert!(is_compactable((0xff, 0xff, 0xff)));
+    assert!(is_compactable((0xee, 0xee, 0xee)));
+    assert!(is_compactable((0x00, 0x00, 0x00)));
+    assert!(!is_compactable((0xf7, 0xf7, 0xf7)));
+    assert!(!is_compactable((0xff, 0xf7, 0xff)));
 }
 
 #[test]
