@@ -16,7 +16,7 @@ use clap::ArgMatches;
 use nix::unistd::ForkResult;
 
 use format::{Format, FormatString, FormatColor};
-use selection::{Selection, daemonize, set_selection};
+use selection::{Selection, into_daemon, set_selection};
 use cli::get_cli;
 
 fn run<'a>(args: ArgMatches<'a>) -> Result<(), Error> {
@@ -41,7 +41,7 @@ fn run<'a>(args: ArgMatches<'a>) -> Result<(), Error> {
         .and_then(|mut v| v.next().map_or(Some(Selection::Primary),
                                           |v| v.parse::<Selection>().ok()));
     let use_selection = selection.is_some();
-    let background = !args.is_present("foreground");
+    let background = std::env::var("XCOLOR_FOREGROUND").is_err();
     let mut in_parent = true;
 
     let (conn, screen) = Connection::connect(None)?;
@@ -54,9 +54,10 @@ fn run<'a>(args: ArgMatches<'a>) -> Result<(), Error> {
         if let Some(point) = x11::wait_for_location(&conn, root)? {
             let color = x11::window_color_at_point(&conn, root, point)?;
             let output = formatter.format(color);
+
             if use_selection {
                 if background {
-                    in_parent = match daemonize()? {
+                    in_parent = match into_daemon()? {
                         ForkResult::Parent { .. } => true,
                         ForkResult::Child => false
                     }

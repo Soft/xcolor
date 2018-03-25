@@ -6,7 +6,7 @@ use xcb::base as xbase;
 use xcb::base::Connection;
 use xcb::xproto;
 
-pub fn daemonize() -> Result<ForkResult, Error> {
+pub fn into_daemon() -> Result<ForkResult, Error> {
     match fork()? {
         parent@ForkResult::Parent { .. } => Ok(parent),
         child@ForkResult::Child => {
@@ -17,7 +17,6 @@ pub fn daemonize() -> Result<ForkResult, Error> {
     }
 }
 
-#[derive(Debug)]
 pub enum Selection {
     Primary,
     Secondary
@@ -118,7 +117,6 @@ pub fn set_selection(conn: &Connection,
                                                                      target,
                                                                      property);
                     xproto::send_event(conn, false, event.requestor(), 0, &response);
-
                 },
                 xproto::SELECTION_CLEAR => {
                     break;

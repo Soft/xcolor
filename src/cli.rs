@@ -1,7 +1,7 @@
 use clap::{App, Arg};
 
 pub fn get_cli() -> App<'static, 'static> {
-    let mut app = App::new(env!("CARGO_PKG_NAME"))
+    App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
@@ -28,15 +28,5 @@ pub fn get_cli() -> App<'static, 'static> {
              .min_values(0)
              .max_values(1)
              .possible_values(&["primary", "secondary"])
-             .help("Output to selection (defaults to primary)"));
-
-    if cfg!(debug_assertions) {
-        app = app.arg(Arg::with_name("foreground")
-                .short("F")
-                .long("foreground")
-                .requires("selection")
-                .help("Stay in the foreground"));
-    }
-
-    app
+             .help("Output to selection (defaults to primary)"))
 }

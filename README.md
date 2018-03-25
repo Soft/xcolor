@@ -59,6 +59,10 @@ the `-s` flag, `xcolor` can be instructed to instead save the color to X11's
 selection. The selection to use can be specified as an argument. Possible
 selection values are `primary` (the default) and `secondary`.
 
+Because of the way selections work in X11, `xcolor` forks into background when
+`-s` mode is used. This behavior can be disabled by defining `XCOLOR_FOREGROUND`
+environment variable.
+
 ### Formatting
 
 By default, the color values will be printed in lowercase hexadecimal format.

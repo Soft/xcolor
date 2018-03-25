@@ -34,6 +34,7 @@ pub fn wait_for_location(conn: &Connection, root: xproto::Window)
                                      cursor,
                                      xbase::CURRENT_TIME)
         .get_reply()?;
+
     if reply.status() != xproto::GRAB_STATUS_SUCCESS as u8 {
         return Err(err_msg("Could not grab pointer"));
     }
@@ -48,9 +49,7 @@ pub fn wait_for_location(conn: &Connection, root: xproto::Window)
                     };
                     break Some((event.root_x(), event.root_y()));
                 },
-                _ => {
-                    break None;
-                }
+                _ => break None
             }
         } else {
             break None;
