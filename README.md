@@ -2,6 +2,7 @@
 
 [![Build Status](https://api.travis-ci.org/Soft/xcolor.svg?branch=master)](https://travis-ci.org/Soft/xcolor)
 [![Latest Version](https://img.shields.io/crates/v/xcolor.svg)](https://crates.io/crates/xcolor)
+[![GitHub release](https://img.shields.io/github/release/Soft/xcolor.svg)](https://github.com/Soft/xcolor/releases)
 [![Rust Documentation](https://img.shields.io/badge/api-rustdoc-blue.svg)](https://docs.rs/crate/xcolor)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -34,7 +35,7 @@ $ cargo install --git 'https://github.com/Soft/xcolor.git'
 Simply invoke the `xcolor` command to select a color. The selected color will be
 printed to the standard output. 
 
-```
+``` text
 xcolor 0.3.0
 Samuel Laurén <samuel.lauren@iki.fi>
 Lightweight color picker for X11
@@ -103,7 +104,7 @@ an optional padding specifier consisting of a character to use for padding and
 the length the string should be padded to. We can use these rules to decode the
 above example string:
 
-```
+``` text
   %{016Br}
     | |||
     | ||`- Channel (red)
