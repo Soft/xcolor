@@ -205,9 +205,6 @@ fn test_expansion() {
 
 #[test]
 fn test_format_color() {
-    let string: FormatString = "rgb(%{r}, %{g}, %{b})".parse().unwrap();
-    assert_eq!(string.format((0, 255, 0)), "rgb(0, 255, 0)");
-
     let string: Result<FormatString, _> = "".parse();
     assert!(string.is_ok());
 
@@ -215,6 +212,30 @@ fn test_format_color() {
     for case in should_err {
         assert!(case.parse::<FormatString>().is_err());
     }
+}
+
+#[test]
+fn test_examples_from_readme() {
+    let fmt: FormatString = "#%{02hr}%{02hg}%{02hb}".parse().unwrap();
+    assert_eq!(fmt.format((255, 0, 255)), "#ff00ff");
+
+    let fmt: FormatString = "#%{02Hr}%{02Hg}%{02Hb}".parse().unwrap();
+    assert_eq!(fmt.format((0, 255, 0)), "#00FF00");
+
+    let fmt: FormatString = "rgb(%{r}, %{g}, %{b})".parse().unwrap();
+    assert_eq!(fmt.format((255, 255, 255)), "rgb(255, 255, 255)");
+
+    let fmt: FormatString = "%{r};%{g};%{b}".parse().unwrap();
+    assert_eq!(fmt.format((0, 0, 0)), "0;0;0");
+
+    let fmt: FormatString = "%{r}, %{g}, %{b}".parse().unwrap();
+    assert_eq!(fmt.format((0, 0, 0)), "0, 0, 0");
+
+    let fmt: FormatString = "Green: %{-4g}".parse().unwrap();
+    assert_eq!(fmt.format((0, 7, 0)), "Green: ---7");
+
+    let fmt: FormatString = "%{016Br}".parse().unwrap();
+    assert_eq!(fmt.format((3, 0, 0)), "0000000000000011");
 }
 
 
