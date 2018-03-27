@@ -67,7 +67,7 @@ environment variable.
 ### Formatting
 
 By default, the color values will be printed in lowercase hexadecimal format.
-The output format can be changed using the `-f NAME` switch. The possible format
+The output format can be changed using the `-f NAME` switch. Supported format
 names are listed bellow:
 
 | Format Specifier | Description                               | Example               | Custom Format Equivalent |
