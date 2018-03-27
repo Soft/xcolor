@@ -1,0 +1,132 @@
+'\" t
+.TH XCOLOR 1 2018
+
+.SH NAME
+xcolor \- lightweight color picker for X11
+
+.SH SYNOPSIS
+
+.B xcolor
+[\fB\-f\fR \fINAME\fR | \fB\-c\fR \fIFORMAT\fR] [\fB\-s\fR [\fISELECTION\fR]] [\fB\-v\fR] [\fB\-h\fR]
+
+.SH DESCRIPTION
+
+\fBxcolor\fR is a lightweight color picker for X11. Use mouse cursor to select
+colors visible anywhere on the screen to get their RGB representation.
+
+.PP
+By default, the selected color is printed to the standard output.
+
+.SH OPTIONS
+
+.TP
+.BI \-f " NAME\fR,\fP " \-\-format " NAME"
+Specify output format. Possible values for \fINAME\fR are \fBhex\fR, \fBHEX\fR,
+\fBhex!\fR, \fBHEX!\fR, \fBrgb\fR, and \fBplain\fR. See \fBFORMATTING\fR for an
+explanation of different formatting options. Conflicts with \fB\-\-custom\fR.
+
+.TP
+.BI \-c " FORMAT\fR,\fP " \-\-custom " FORMAT"
+Specify template for custom output format. See \fBCUSTOM FORMATTING\fR for an
+explanation of template syntax. Conflicts with \fB\-\-format\fR.
+
+.TP
+.BI \-s " \fR[\fPSELECTION\fR]\fP\fR,\fP " \-\-selection " \fR[\fPSELECTION\fR]\fP"
+Save output to X11 selection. Possible values for \fISELECTION\fR are
+\fBprimary\fR and \fBsecondary\fR. If \fISELECTION\fR is not supplied,
+\fBprimary\fR is used.
+
+.TP
+.BR \-v ", " \-\-version
+Print version information and exit.
+
+.TP
+.BR \-h ", " \-\-help
+Print help message and exit.
+
+.SH FORMATTING
+By default, the color values are printed in lowercase hexadecimal format. The
+output format can be changed using the \fB\-\-format\fR \fINAME\fR switch. The
+possible \fINAME\fR values are:
+
+.TP
+.B hex
+Lowercase hexadecimal (default)
+.TP
+.B HEX
+Uppercase hexadecimal
+.TP
+.B hex!
+Compact lowercase hexadecimal
+.TP
+.B HEX!
+Compact uppercase hexadecimal
+.TP
+.B rgb
+Decimal RGB
+.TP
+.B plain
+Decimal with semicolon separators
+
+.PP
+The compact form refers to CSS three-letter color codes as specified by CSS
+Color Module Level 3. If the color is not expressible in three-letter form, the
+regular six-letter form will be used.
+
+.SS CUSTOM FORMATTING
+
+The \fB\-\-format\fR switch provides quick access to some commonly used
+formatting options. However, if custom output formatting is desired, this can be
+achieved using the \fB\-\-custom\fR \fIFORMAT\fR switch. The \fIFORMAT\fR
+parameter specifies a template for the output and supports a simple template
+language.
+
+\fIFORMAT\fR templates can contain special expansions that are written inside
+\fB%\fR{\fI...\fR} blocks. These blocks will be expanded into color values
+according to the specifiers defined inside the block. Here are examples of valid
+format strings and what they might translate to:
+
+.RS
+.TS
+lB lB
+l l.
+Format String	Example Output
+%{r}, %{g}, %{b}	255, 0, 100
+Green: %{-4g}	Green: ---7
+#%{02hr}%{02hg}%{02hb}	#00ff00
+%{016Br}	0000000000000011
+.TE
+.RE
+
+Expansion blocks in format strings always contain a channel specifier (\fBr\fR
+for red, \fBg\fR for green, and \fBb\fR for blue). Additionally, they can
+contain an optional number format specifier (\fBh\fR for lowercase hexadecimal,
+\fBH\fR for uppercase hexadecimal, \fBo\fR for octal, \fBB\fR for binary, and
+\fBd\fR for decimal) and an optional padding specifier consisting of a character
+to use for padding and the length the string should be padded to. The diagram
+bellow illustrates how we can use these rules to decode a formatting template:
+
+.nf
+.RS
+\fB%\fR{\fI0\fR\fB16\fR\fIB\fR\fBr\fR}
+  | |||
+  | ||`- Channel (\fIred\fR)
+  | |`-- Number format specifier (\fIbinary\fR)
+  | `--- Padding length (\fI16\fR)
+  `----- Character to use for padding (\fI0\fR)
+.RE
+.fi
+
+The output is the contents of the red color channel formatted in binary and
+padded with zeroes to be sixteen characters long.
+
+.SH ENVIRONMENT
+
+.TP
+.I XCOLOR_FOREGROUND
+Disable daemon mode. Because of the way selections work in X11, \fBxcolor\fR
+forks into background when \fB\-\-selection\fR mode is used. This behavior can
+be disabled by defining \fIXCOLOR_FOREGROUND\fR environment variable.
+
+.SH AUTHORS
+Samuel Laurén <samuel.lauren@iki.fi>
