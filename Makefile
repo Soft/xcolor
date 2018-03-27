@@ -10,8 +10,8 @@ target/release/xcolor:
 	cargo build --release $(CARGO_FLAGS)
 
 install: target/release/xcolor
-	install -m755 -- target/release/xcolor "$(DESTDIR)$(PREFIX)/bin/"
-	install -m644 -- man/xcolor.1 "$(DESTDIR)$(PREFIX)/share/man/man1/"
+	install -s -D -m755 -- target/release/xcolor "$(DESTDIR)$(PREFIX)/bin/xcolor"
+	install -D -m644 -- man/xcolor.1 "$(DESTDIR)$(PREFIX)/share/man/man1/xcolor.1"
 
 help:
 	@echo "Available make targets:"
