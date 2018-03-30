@@ -9,6 +9,7 @@ categories = ["command-line-utilities"]
 keywords = ["color", "utility", "color-picker", "x11"]
 homepage = "https://github.com/Soft/xcolor"
 repository = "https://github.com/Soft/xcolor"
+build = "build.rs"
 exclude = ["docker/*", "_config.yml"]
 
 [dependencies]

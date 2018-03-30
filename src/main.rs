@@ -28,7 +28,7 @@ fn run<'a>(args: ArgMatches<'a>) -> Result<(), Error> {
 
     let formatter = if let Some(custom) = args.value_of("custom") {
         Box::new(custom.parse::<FormatString>()
-                 .unwrap_or_else(|_| error("invalid format string")))
+                 .unwrap_or_else(|_| error("Invalid format string")))
             as Box<FormatColor>
 
     } else {
