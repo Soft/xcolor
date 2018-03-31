@@ -283,7 +283,7 @@ dependencies = [
 
 [[package]]
 name = "xcolor"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "clap 2.31.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
