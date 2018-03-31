@@ -8,6 +8,7 @@ extern crate nom;
 
 mod format;
 mod x11;
+mod preview;
 mod selection;
 mod cli;
 
@@ -52,7 +53,7 @@ fn run<'a>(args: ArgMatches<'a>) -> Result<(), Error> {
             .ok_or_else(|| err_msg("Could not find screen"))?;
         let root = screen.root();
 
-        if let Some(point) = x11::wait_for_location(&conn, root)? {
+        if let Some(point) = x11::wait_for_location(&conn, &screen)? {
             let color = x11::window_color_at_point(&conn, root, point)?;
             let output = formatter.format(color);
 

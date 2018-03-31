@@ -4,13 +4,17 @@ use failure::{Error, err_msg};
 use xcb::base as xbase;
 use xcb::base::Connection;
 use xcb::xproto;
+use xcb::xproto::Screen;
+
+use preview::Preview;
 
 pub type RGB = (u8, u8, u8);
 
-pub fn wait_for_location(conn: &Connection, root: xproto::Window)
+pub fn wait_for_location(conn: &Connection, screen: &Screen)
                          -> Result<Option<(i16, i16)>, Error> {
     const XC_CROSSHAIR: u16 = 34;
 
+    let root = screen.root();
     let cursor_font = conn.generate_id();
     let cursor = conn.generate_id();
 
@@ -24,10 +28,12 @@ pub fn wait_for_location(conn: &Connection, root: xproto::Window)
                                         std::u16::MAX, std::u16::MAX, std::u16::MAX)
         .request_check()?;
 
-    let reply = xproto::grab_pointer(&conn,
+    let grab_mask = xproto::EVENT_MASK_BUTTON_PRESS as u16
+        | xproto::EVENT_MASK_POINTER_MOTION as u16;
+    let reply = xproto::grab_pointer(conn,
                                      false,
                                      root,
-                                     xproto::EVENT_MASK_BUTTON_PRESS as u16,
+                                     grab_mask,
                                      xproto::GRAB_MODE_ASYNC as u8,
                                      xproto::GRAB_MODE_ASYNC as u8,
                                      xbase::NONE,
@@ -39,6 +45,8 @@ pub fn wait_for_location(conn: &Connection, root: xproto::Window)
         return Err(err_msg("Could not grab pointer"));
     }
 
+    let preview = Preview::create(conn, screen)?;
+
     let result = loop {
         let event = conn.wait_for_event();
         if let Some(event) = event {
@@ -48,6 +56,18 @@ pub fn wait_for_location(conn: &Connection, root: xproto::Window)
                         xbase::cast_event(&event)
                     };
                     break Some((event.root_x(), event.root_y()));
+                },
+                xproto::EXPOSE => {
+                    let event: &xproto::ExposeEvent = unsafe {
+                        xbase::cast_event(&event)
+                    };
+                    preview.draw(event)?;
+                },
+                xproto::MOTION_NOTIFY => {
+                    let event: &xproto::MotionNotifyEvent = unsafe {
+                        xbase::cast_event(&event)
+                    };
+                    preview.position(event)?;
                 },
                 _ => break None
             }
