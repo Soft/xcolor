@@ -30,6 +30,22 @@ can direct cargo to install from the git repository:
 $ cargo install --git 'https://github.com/Soft/xcolor.git'
 ```
 
+However, just downloading the application binary or installing with cargo will
+not install program’s man page. To also get the manual installed, invoke `make
+install` in the project directory. By default, the install script will place the
+files under `/usr/local/` hierarchy.
+
+#### Arch Linux
+
+`xcolor` is available in [Arch User Repository](https://aur.archlinux.org/packages/xcolor/).
+To install `xcolor` from AUR:
+
+``` shell
+git clone https://aur.archlinux.org/xcolor.git
+cd xcolor
+makepkg -isr
+```
+
 ### Usage
 
 Simply invoke the `xcolor` command to select a color. The selected color will be
