@@ -45,7 +45,16 @@ pub fn wait_for_location(conn: &Connection, screen: &Screen)
         return Err(err_msg("Could not grab pointer"));
     }
 
+
+    let pointer = xproto::query_pointer(conn, root)
+        .get_reply()?;
+    let mut pointer_x = pointer.root_x();
+    let mut pointer_y = pointer.root_y();
+    let mut color = window_color_at_point(conn, root, (pointer_x, pointer_y))?;
+
     let preview = Preview::create(conn, screen)?;
+    preview.reposition((pointer_x, pointer_y))?;
+    preview.map()?;
 
     let result = loop {
         let event = conn.wait_for_event();
@@ -58,16 +67,17 @@ pub fn wait_for_location(conn: &Connection, screen: &Screen)
                     break Some((event.root_x(), event.root_y()));
                 },
                 xproto::EXPOSE => {
-                    let event: &xproto::ExposeEvent = unsafe {
-                        xbase::cast_event(&event)
-                    };
-                    preview.draw(event)?;
+                    preview.redraw(color)?;
                 },
                 xproto::MOTION_NOTIFY => {
                     let event: &xproto::MotionNotifyEvent = unsafe {
                         xbase::cast_event(&event)
                     };
-                    preview.position(event)?;
+                    pointer_x = event.root_x();
+                    pointer_y = event.root_y();
+                    color = window_color_at_point(conn, root, (pointer_x, pointer_y))?;
+                    preview.reposition((pointer_x, pointer_y))?;
+                    preview.redraw(color)?;
                 },
                 _ => break None
             }
@@ -75,7 +85,7 @@ pub fn wait_for_location(conn: &Connection, screen: &Screen)
             break None;
         }
     };
-    xproto::ungrab_pointer(&conn, xbase::CURRENT_TIME);
+    xproto::ungrab_pointer(conn, xbase::CURRENT_TIME);
     conn.flush();
     Ok(result)
 }
