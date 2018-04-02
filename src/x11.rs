@@ -62,25 +62,20 @@ pub fn wait_for_location(conn: &Connection, root: xproto::Window)
 
 pub fn window_color_at_point(conn: &Connection, window: xproto::Window, (x, y): (i16, i16))
                          -> Result<RGB, Error> {
-    let geometry = xproto::get_geometry(conn, window).get_reply()?;
     let reply = xproto::get_image(conn,
                                   xproto::IMAGE_FORMAT_Z_PIXMAP as u8,
                                   window,
-                                  geometry.x(),
-                                  geometry.y(),
-                                  geometry.width(),
-                                  geometry.height(),
+                                  x, y, 1, 1,
                                   std::u32::MAX)
         .get_reply()?;
     if reply.depth() != 24 {
         // TODO: Figure out what to do with these
         return Err(err_msg("Unsupported color depth"));
     }
-    let base = (x as usize * 4) + ((y as usize) * (geometry.width() as usize * 4));
     let data = reply.data();
-    let b = data[base + 0];
-    let g = data[base + 1];
-    let r = data[base + 2];
+    let r = data[2];
+    let g = data[1];
+    let b = data[0];
     Ok((r, g, b))
 }
 
