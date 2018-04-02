@@ -9,17 +9,21 @@
 Lightweight color picker for X11. Use mouse cursor to select colors visible
 anywhere on the screen to view their RGB representation.
 
-### Installation
+## Installation
+
+### GitHub Release Binaries
 
 There are statically linked release binaries available on the [GitHub releases
 page](https://github.com/Soft/xcolor/releases). These binaries should work on
 most recent Linux systems without any additional dependencies or configuration.
 
+### Using Cargo
+
 Alternatively, `xcolor` can be easily installed from the source using
 [cargo](https://doc.rust-lang.org/stable/cargo/):
 
 ``` shell
-$ cargo install xcolor
+cargo install xcolor
 ```
 
 Building and running `xcolor` requires [xcb](https://xcb.freedesktop.org)
@@ -27,7 +31,7 @@ libraries to be present. To get the latest development version of `xcolor`, you
 can direct cargo to install from the git repository:
 
 ``` shell
-$ cargo install --git 'https://github.com/Soft/xcolor.git'
+cargo install --git 'https://github.com/Soft/xcolor.git'
 ```
 
 However, just downloading the application binary or installing with cargo will
@@ -35,9 +39,9 @@ not install program’s man page. To also get the manual installed, invoke `make
 install` in the project directory. By default, the install script will place the
 files under `/usr/local/` hierarchy.
 
-#### Arch Linux
+### Arch Linux
 
-`xcolor` is available in [Arch User Repository](https://aur.archlinux.org/packages/xcolor/).
+`xcolor` is available in the [Arch User Repository](https://aur.archlinux.org/packages/xcolor/).
 To install `xcolor` from AUR:
 
 ``` shell
@@ -46,7 +50,7 @@ cd xcolor
 makepkg -isr
 ```
 
-### Usage
+## Usage
 
 Simply invoke the `xcolor` command to select a color. The selected color will be
 printed to the standard output. 
@@ -69,7 +73,7 @@ OPTIONS:
     -s, --selection <SELECTION>    Output to selection (defaults to primary) [possible values: primary, secondary]
 ```
 
-### Saving to Selection
+## Saving to Selection
 
 By default, the selected color is printed to the standard output. By specifying
 the `-s` flag, `xcolor` can be instructed to instead save the color to X11's
@@ -80,7 +84,7 @@ Because of the way selections work in X11, `xcolor` forks into background when
 `-s` mode is used. This behavior can be disabled by defining `XCOLOR_FOREGROUND`
 environment variable.
 
-### Formatting
+## Formatting
 
 By default, the color values will be printed in lowercase hexadecimal format.
 The output format can be changed using the `-f NAME` switch. Supported format
@@ -100,7 +104,7 @@ Color Module Level 3](https://www.w3.org/TR/2018/PR-css-color-3-20180315/#rgb-co
 If the color is not expressible in three-letter form, the regular six-letter
 form will be used.
 
-### Custom Formatting
+## Custom Formatting
 
 The `-f` switch provides quick access to some commonly used formatting options.
 However, if custom output formatting is desired, this can be achieved using the
