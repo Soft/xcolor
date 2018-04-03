@@ -5,11 +5,11 @@ use xcb::xproto;
 use xcb::xproto::Screen;
 use xcb::shape as xshape;
 
+use atoms;
 use color::RGB;
 
 // TODO:
 // - Set window class
-// - Intern cache
 // - HiDPI
 
 const PREVIEW_WIDTH: u16 = 32;
@@ -30,24 +30,17 @@ impl<'a> Preview<'a> {
                   use_shaped: bool)
                   -> Result<Preview<'a>, Error> {
         let root = screen.root();
-        let net_wm_window_type = xproto::intern_atom(conn, true, "_NET_WM_WINDOW_TYPE")
-            .get_reply()?.atom();
-        let net_wm_window_type_tooltip = xproto::intern_atom(conn, true, "_NET_WM_WINDOW_TYPE_TOOLTIP")
-            .get_reply()?.atom();
-        let net_wm_name = xproto::intern_atom(conn, true, "_NET_WM_NAME")
-            .get_reply()?.atom();
-        let utf8_string = xproto::intern_atom(conn, false, "UTF8_STRING")
-            .get_reply()?.atom();
-        let net_wm_state = xproto::intern_atom(conn, true, "_NET_WM_STATE")
-            .get_reply()?.atom();
-        let net_wm_state_above = xproto::intern_atom(conn, true, "_NET_WM_STATE_ABOVE")
-            .get_reply()?.atom();
-        let net_wm_state_sticky = xproto::intern_atom(conn, true, "_NET_WM_STATE_STICKY")
-            .get_reply()?.atom();
-        let net_wm_state_skip_taskbar = xproto::intern_atom(conn, true, "_NET_WM_STATE_SKIP_TASKBAR")
-            .get_reply()?.atom();
-        let net_wm_state_skip_pager = xproto::intern_atom(conn, true, "_NET_WM_STATE_SKIP_PAGER")
-            .get_reply()?.atom();
+
+        // Intern atoms
+        let net_wm_window_type = atoms::get(conn, "_NET_WM_WINDOW_TYPE")?;
+        let net_wm_window_type_tooltip = atoms::get(conn, "_NET_WM_WINDOW_TYPE_TOOLTIP")?;
+        let net_wm_name = atoms::get(conn, "_NET_WM_NAME")?;
+        let utf8_string = atoms::get(conn, "UTF8_STRING")?;
+        let net_wm_state = atoms::get(conn, "_NET_WM_STATE")?;
+        let net_wm_state_above = atoms::get(conn, "_NET_WM_STATE_ABOVE")?;
+        let net_wm_state_sticky = atoms::get(conn, "_NET_WM_STATE_STICKY")?;
+        let net_wm_state_skip_taskbar = atoms::get(conn, "_NET_WM_STATE_SKIP_TASKBAR")?;
+        let net_wm_state_skip_pager = atoms::get(conn, "_NET_WM_STATE_SKIP_PAGER")?;
 
         let values = [ (xproto::GC_FOREGROUND, screen.white_pixel()) ];
         let gc = conn.generate_id();

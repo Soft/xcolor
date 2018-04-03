@@ -5,6 +5,8 @@ extern crate nix;
 extern crate libc;
 #[macro_use]
 extern crate nom;
+#[macro_use]
+extern crate lazy_static;
 
 mod format;
 mod x11;
@@ -12,6 +14,7 @@ mod preview;
 mod selection;
 mod cli;
 mod color;
+mod atoms;
 
 use failure::{Error, err_msg};
 use xcb::base::Connection;
