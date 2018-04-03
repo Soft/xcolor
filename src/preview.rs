@@ -21,7 +21,9 @@ const WINDOW_NAME: &str = "xcolor";
 pub struct Preview<'a> {
     conn: &'a Connection,
     window: xproto::Window,
-    gc: xproto::Gc
+    background_gc: xproto::Gc,
+    border_gc: xproto::Gc,
+    shaped: bool
 }
 
 impl<'a> Preview<'a> {
@@ -42,9 +44,14 @@ impl<'a> Preview<'a> {
         let net_wm_state_skip_taskbar = atoms::get(conn, "_NET_WM_STATE_SKIP_TASKBAR")?;
         let net_wm_state_skip_pager = atoms::get(conn, "_NET_WM_STATE_SKIP_PAGER")?;
 
+        // Create GCs
         let values = [ (xproto::GC_FOREGROUND, screen.white_pixel()) ];
-        let gc = conn.generate_id();
-        xproto::create_gc(conn, gc, root, &values);
+        let background_gc = conn.generate_id();
+        xproto::create_gc(conn, background_gc, root, &values);
+
+        let values = [ (xproto::GC_FOREGROUND, screen.black_pixel()) ];
+        let border_gc = conn.generate_id();
+        xproto::create_gc(conn, border_gc, root, &values);
 
         let window = conn.generate_id();
 
@@ -108,29 +115,32 @@ impl<'a> Preview<'a> {
             .request_check()?;
 
 
+        let mut shaped = false;
         // Setup shape mask
         let shape_ext = conn.get_extension_data(xshape::id());
         if use_shaped && shape_ext.map_or(false, |ext| ext.present()) {
-          let mask = conn.generate_id();
-          xproto::create_pixmap(conn, 1, mask, window, PREVIEW_WIDTH, PREVIEW_HEIGHT);
+            let mask = conn.generate_id();
+            xproto::create_pixmap(conn, 1, mask, window, PREVIEW_WIDTH, PREVIEW_HEIGHT);
 
-          let values = [ (xproto::GC_FOREGROUND, 0) ];
-          let mask_gc = conn.generate_id();
-          xproto::create_gc(conn, mask_gc, mask, &values);
+            let values = [ (xproto::GC_FOREGROUND, 0) ];
+            let mask_gc = conn.generate_id();
+            xproto::create_gc(conn, mask_gc, mask, &values);
 
-          let rect = xproto::Rectangle::new(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT);
-          xproto::poly_fill_rectangle(conn, mask, mask_gc, &[rect]);
+            let rect = xproto::Rectangle::new(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT);
+            xproto::poly_fill_rectangle(conn, mask, mask_gc, &[rect]);
 
-          let values = [ (xproto::GC_FOREGROUND, 1) ];
-          xproto::change_gc(conn, mask_gc, &values);
+            let values = [ (xproto::GC_FOREGROUND, 1) ];
+            xproto::change_gc(conn, mask_gc, &values);
 
-          let arc = xproto::Arc::new(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT, 0, 360 << 6);
-          xproto::poly_fill_arc(conn, mask, mask_gc, &[arc]);
+            let arc = xproto::Arc::new(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT, 0, 360 << 6);
+            xproto::poly_fill_arc(conn, mask, mask_gc, &[arc]);
 
-          xshape::mask(conn, xshape::SO_SET as u8, xshape::SK_BOUNDING as u8, window, 0, 0, mask);
+            xshape::mask(conn, xshape::SO_SET as u8, xshape::SK_BOUNDING as u8, window, 0, 0, mask);
+
+            shaped = true;
         }
 
-        Ok(Preview { conn, window, gc })
+        Ok(Preview { conn, window, background_gc, border_gc, shaped })
     }
 
     pub fn map(&self) -> Result<(), Error> {
@@ -157,13 +167,24 @@ impl<'a> Preview<'a> {
     }
 
     pub fn redraw(&self, color: RGB) -> Result<(), Error> {
-        let values: &[(u32, u32)] = &[
-            (xproto::GC_FOREGROUND, color.into())
-        ];
-        xproto::change_gc(self.conn, self.gc, values);
+        let color: u32 = color.into();
+        let values: &[(u32, u32)] = &[ (xproto::GC_FOREGROUND, color) ];
+        xproto::change_gc(self.conn, self.background_gc, values);
         let rect = xproto::Rectangle::new(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT);
-        xproto::poly_fill_rectangle(self.conn, self.window, self.gc, &[rect]);
+        xproto::poly_fill_rectangle(self.conn, self.window, self.background_gc, &[rect]);
+
+        let values: &[(u32, u32)] = &[ (xproto::GC_FOREGROUND, !color) ];
+        xproto::change_gc(self.conn, self.border_gc, values);
+        if self.shaped {
+          let arc = xproto::Arc::new(1, 1, PREVIEW_WIDTH-2, PREVIEW_HEIGHT-2, 0, 360 << 6);
+          xproto::poly_arc(self.conn, self.window, self.border_gc, &[arc]);
+        } else {
+          let rect = xproto::Rectangle::new(0, 0, PREVIEW_WIDTH-1, PREVIEW_HEIGHT-1);
+          xproto::poly_rectangle(self.conn, self.window, self.border_gc, &[rect]);
+        }
+
         self.conn.flush();
+
         Ok(())
     }
 }
