@@ -9,9 +9,9 @@ extern crate nom;
 extern crate lazy_static;
 
 mod format;
-mod x11;
 mod preview;
 mod selection;
+mod location;
 mod cli;
 mod color;
 mod atoms;
@@ -24,6 +24,8 @@ use nix::unistd::ForkResult;
 use format::{Format, FormatString, FormatColor};
 use selection::{Selection, into_daemon, set_selection};
 use cli::get_cli;
+use location::wait_for_location;
+use color::window_color_at_point;
 
 fn run<'a>(args: ArgMatches<'a>) -> Result<(), Error> {
     fn error(message: &str) -> ! {
@@ -57,8 +59,8 @@ fn run<'a>(args: ArgMatches<'a>) -> Result<(), Error> {
             .ok_or_else(|| err_msg("Could not find screen"))?;
         let root = screen.root();
 
-        if let Some(point) = x11::wait_for_location(&conn, &screen)? {
-            let color = x11::window_color_at_point(&conn, root, point)?;
+        if let Some(point) = wait_for_location(&conn, &screen)? {
+            let color = window_color_at_point(&conn, root, point)?;
             let output = formatter.format(color);
 
             if use_selection {

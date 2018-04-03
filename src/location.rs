@@ -7,7 +7,7 @@ use xcb::xproto;
 use xcb::xproto::Screen;
 
 use preview::Preview;
-use color::RGB;
+use color;
 
 pub fn wait_for_location(conn: &Connection, screen: &Screen)
                          -> Result<Option<(i16, i16)>, Error> {
@@ -49,7 +49,7 @@ pub fn wait_for_location(conn: &Connection, screen: &Screen)
         .get_reply()?;
     let mut pointer_x = pointer.root_x();
     let mut pointer_y = pointer.root_y();
-    let mut color = window_color_at_point(conn, root, (pointer_x, pointer_y))?;
+    let mut color = color::window_color_at_point(conn, root, (pointer_x, pointer_y))?;
 
     let preview = Preview::create(conn, screen, true)?;
     preview.reposition((pointer_x, pointer_y))?;
@@ -74,7 +74,7 @@ pub fn wait_for_location(conn: &Connection, screen: &Screen)
                     };
                     pointer_x = event.root_x();
                     pointer_y = event.root_y();
-                    color = window_color_at_point(conn, root, (pointer_x, pointer_y))?;
+                    color = color::window_color_at_point(conn, root, (pointer_x, pointer_y))?;
                     preview.reposition((pointer_x, pointer_y))?;
                     preview.redraw(color)?;
                 },
@@ -88,24 +88,5 @@ pub fn wait_for_location(conn: &Connection, screen: &Screen)
     xproto::ungrab_pointer(conn, xbase::CURRENT_TIME);
     conn.flush();
     Ok(result)
-}
-
-pub fn window_color_at_point(conn: &Connection, window: xproto::Window, (x, y): (i16, i16))
-                         -> Result<RGB, Error> {
-    let reply = xproto::get_image(conn,
-                                  xproto::IMAGE_FORMAT_Z_PIXMAP as u8,
-                                  window,
-                                  x, y, 1, 1,
-                                  std::u32::MAX)
-        .get_reply()?;
-    if reply.depth() != 24 {
-        // TODO: Figure out what to do with these
-        return Err(err_msg("Unsupported color depth"));
-    }
-    let data = reply.data();
-    let r = data[2];
-    let g = data[1];
-    let b = data[0];
-    Ok(RGB::new(r, g, b))
 }
 
