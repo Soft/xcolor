@@ -29,15 +29,6 @@ impl From<RGB> for u32 {
     }
 }
 
-#[test]
-fn test_compaction() {
-    assert!(RGB::new(0xff, 0xff, 0xff).is_compactable());
-    assert!(RGB::new(0xee, 0xee, 0xee).is_compactable());
-    assert!(RGB::new(0x00, 0x00, 0x00).is_compactable());
-    assert!(!RGB::new(0xf7, 0xf7, 0xf7).is_compactable());
-    assert!(!RGB::new(0xff, 0xf7, 0xff).is_compactable());
-}
-
 pub fn window_color_at_point(conn: &Connection, window: xproto::Window, (x, y): (i16, i16))
                          -> Result<RGB, Error> {
     let reply = xproto::get_image(conn,
@@ -57,3 +48,11 @@ pub fn window_color_at_point(conn: &Connection, window: xproto::Window, (x, y): 
     Ok(RGB::new(r, g, b))
 }
 
+#[test]
+fn test_compaction() {
+    assert!(RGB::new(0xff, 0xff, 0xff).is_compactable());
+    assert!(RGB::new(0xee, 0xee, 0xee).is_compactable());
+    assert!(RGB::new(0x00, 0x00, 0x00).is_compactable());
+    assert!(!RGB::new(0xf7, 0xf7, 0xf7).is_compactable());
+    assert!(!RGB::new(0xff, 0xf7, 0xff).is_compactable());
+}

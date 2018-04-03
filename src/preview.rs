@@ -109,7 +109,6 @@ impl<'a> Preview<'a> {
                                 WINDOW_NAME.as_bytes())
             .request_check()?;
 
-
         // Setup shape mask
         let shape_ext = conn.get_extension_data(xshape::id());
         if use_shaped && shape_ext.map_or(false, |ext| ext.present()) {
