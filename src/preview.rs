@@ -38,6 +38,16 @@ impl<'a> Preview<'a> {
             .get_reply()?.atom();
         let utf8_string = xproto::intern_atom(conn, false, "UTF8_STRING")
             .get_reply()?.atom();
+        let net_wm_state = xproto::intern_atom(conn, true, "_NET_WM_STATE")
+            .get_reply()?.atom();
+        let net_wm_state_above = xproto::intern_atom(conn, true, "_NET_WM_STATE_ABOVE")
+            .get_reply()?.atom();
+        let net_wm_state_sticky = xproto::intern_atom(conn, true, "_NET_WM_STATE_STICKY")
+            .get_reply()?.atom();
+        let net_wm_state_skip_taskbar = xproto::intern_atom(conn, true, "_NET_WM_STATE_SKIP_TASKBAR")
+            .get_reply()?.atom();
+        let net_wm_state_skip_pager = xproto::intern_atom(conn, true, "_NET_WM_STATE_SKIP_PAGER")
+            .get_reply()?.atom();
 
         let values = [ (xproto::GC_FOREGROUND, screen.white_pixel()) ];
         let gc = conn.generate_id();
@@ -70,6 +80,19 @@ impl<'a> Preview<'a> {
                                 xproto::ATOM_ATOM,
                                 32,
                                 &[net_wm_window_type_tooltip])
+            .request_check()?;
+
+        let wm_state = [net_wm_state_above,
+                        net_wm_state_sticky,
+                        net_wm_state_skip_taskbar,
+                        net_wm_state_skip_pager];
+        xproto::change_property(conn,
+                                xproto::PROP_MODE_REPLACE as u8,
+                                window,
+                                net_wm_state,
+                                xproto::ATOM_ATOM,
+                                32,
+                                &wm_state)
             .request_check()?;
         
         // Set window name
