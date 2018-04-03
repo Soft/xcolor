@@ -52,7 +52,7 @@ pub fn wait_for_location(conn: &Connection, screen: &Screen)
     let mut pointer_y = pointer.root_y();
     let mut color = window_color_at_point(conn, root, (pointer_x, pointer_y))?;
 
-    let preview = Preview::create(conn, screen)?;
+    let preview = Preview::create(conn, screen, true)?;
     preview.reposition((pointer_x, pointer_y))?;
     preview.map()?;
 

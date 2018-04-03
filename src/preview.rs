@@ -3,20 +3,20 @@ use xcb::base as xbase;
 use xcb::base::Connection;
 use xcb::xproto;
 use xcb::xproto::Screen;
+use xcb::shape as xshape;
 
 use x11;
 use x11::RGB;
 
 // TODO:
 // - Set window class
-// - Set shape mask
 // - Intern cache
 // - HiDPI
 
 const PREVIEW_WIDTH: u16 = 32;
 const PREVIEW_HEIGHT: u16 = 32;
-const PREVIEW_OFFSET_X: u16 = 16;
-const PREVIEW_OFFSET_Y: u16 = 16;
+const PREVIEW_OFFSET_X: u16 = 10;
+const PREVIEW_OFFSET_Y: u16 = 10;
 const WINDOW_NAME: &str = "xcolor";
 
 pub struct Preview<'a> {
@@ -27,7 +27,8 @@ pub struct Preview<'a> {
 
 impl<'a> Preview<'a> {
     pub fn create(conn: &'a Connection,
-                  screen: &Screen)
+                  screen: &Screen,
+                  use_shaped: bool)
                   -> Result<Preview<'a>, Error> {
         let root = screen.root();
         let net_wm_window_type = xproto::intern_atom(conn, true, "_NET_WM_WINDOW_TYPE")
@@ -39,9 +40,7 @@ impl<'a> Preview<'a> {
         let utf8_string = xproto::intern_atom(conn, false, "UTF8_STRING")
             .get_reply()?.atom();
 
-        let values = [
-            (xproto::GC_FOREGROUND, screen.white_pixel()),
-        ];
+        let values = [ (xproto::GC_FOREGROUND, screen.white_pixel()) ];
         let gc = conn.generate_id();
         xproto::create_gc(conn, gc, root, &values);
 
@@ -64,6 +63,7 @@ impl<'a> Preview<'a> {
                               &values)
             .request_check()?;
 
+        // Window properties
         xproto::change_property(conn,
                                 xproto::PROP_MODE_REPLACE as u8,
                                 window,
@@ -73,6 +73,7 @@ impl<'a> Preview<'a> {
                                 &[net_wm_window_type_tooltip])
             .request_check()?;
         
+        // Set window name
         xproto::change_property(conn,
                                 xproto::PROP_MODE_REPLACE as u8,
                                 window,
@@ -81,6 +82,38 @@ impl<'a> Preview<'a> {
                                 8,
                                 WINDOW_NAME.as_bytes())
             .request_check()?;
+
+        xproto::change_property(conn,
+                                xproto::PROP_MODE_REPLACE as u8,
+                                window,
+                                xproto::ATOM_WM_NAME,
+                                xproto::ATOM_STRING,
+                                8,
+                                WINDOW_NAME.as_bytes())
+            .request_check()?;
+
+
+        // Setup shape mask
+        let shape_ext = conn.get_extension_data(xshape::id());
+        if use_shaped && shape_ext.map_or(false, |ext| ext.present()) {
+          let mask = conn.generate_id();
+          xproto::create_pixmap(conn, 1, mask, window, PREVIEW_WIDTH, PREVIEW_HEIGHT);
+
+          let values = [ (xproto::GC_FOREGROUND, 0) ];
+          let mask_gc = conn.generate_id();
+          xproto::create_gc(conn, mask_gc, mask, &values);
+
+          let rect = xproto::Rectangle::new(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT);
+          xproto::poly_fill_rectangle(conn, mask, mask_gc, &[rect]);
+
+          let values = [ (xproto::GC_FOREGROUND, 1) ];
+          xproto::change_gc(conn, mask_gc, &values);
+
+          let arc = xproto::Arc::new(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT, 0, 360 << 6);
+          xproto::poly_fill_arc(conn, mask, mask_gc, &[arc]);
+
+          xshape::mask(conn, xshape::SO_SET as u8, xshape::SK_BOUNDING as u8, window, 0, 0, mask);
+        }
 
         Ok(Preview { conn, window, gc })
     }
