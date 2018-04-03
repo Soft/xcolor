@@ -7,8 +7,7 @@ use xcb::xproto;
 use xcb::xproto::Screen;
 
 use preview::Preview;
-
-pub type RGB = (u8, u8, u8);
+use color::RGB;
 
 pub fn wait_for_location(conn: &Connection, screen: &Screen)
                          -> Result<Option<(i16, i16)>, Error> {
@@ -106,6 +105,6 @@ pub fn window_color_at_point(conn: &Connection, window: xproto::Window, (x, y): 
     let r = data[2];
     let g = data[1];
     let b = data[0];
-    Ok((r, g, b))
+    Ok(RGB::new(r, g, b))
 }
 

@@ -11,6 +11,7 @@ mod x11;
 mod preview;
 mod selection;
 mod cli;
+mod color;
 
 use failure::{Error, err_msg};
 use xcb::base::Connection;

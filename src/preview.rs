@@ -1,12 +1,11 @@
-use failure::{Error, err_msg};
+use failure::Error;
 use xcb::base as xbase;
 use xcb::base::Connection;
 use xcb::xproto;
 use xcb::xproto::Screen;
 use xcb::shape as xshape;
 
-use x11;
-use x11::RGB;
+use color::RGB;
 
 // TODO:
 // - Set window class
@@ -135,10 +134,9 @@ impl<'a> Preview<'a> {
         Ok(())
     }
 
-    pub fn redraw(&self, (r, g, b): RGB) -> Result<(), Error> {
-        let color: u32 = (r as u32)  << 16 | (g as u32) << 8 | (b as u32);
+    pub fn redraw(&self, color: RGB) -> Result<(), Error> {
         let values: &[(u32, u32)] = &[
-            (xproto::GC_FOREGROUND, color)
+            (xproto::GC_FOREGROUND, color.into())
         ];
         xproto::change_gc(self.conn, self.gc, values);
         let rect = xproto::Rectangle::new(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT);
