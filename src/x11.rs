@@ -84,6 +84,7 @@ pub fn wait_for_location(conn: &Connection, screen: &Screen)
             break None;
         }
     };
+    preview.unmap()?;
     xproto::ungrab_pointer(conn, xbase::CURRENT_TIME);
     conn.flush();
     Ok(result)

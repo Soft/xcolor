@@ -123,6 +123,12 @@ impl<'a> Preview<'a> {
         Ok(())
     }
 
+    pub fn unmap(&self) -> Result<(), Error> {
+        xproto::unmap_window(self.conn, self.window)
+            .request_check()?;
+        Ok(())
+    }
+
     pub fn reposition(&self, (x, y): (i16, i16)) -> Result<(), Error> {
         // These casts seem bad
         let values: &[(u16, u32)] = &[
