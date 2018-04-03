@@ -116,38 +116,30 @@ impl<'a> Preview<'a> {
             let solid = [ (xproto::GC_FOREGROUND, 1) ];
             let rect = xproto::Rectangle::new(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT);
 
-            // Set content mask
-
             let mask = conn.generate_id();
             xproto::create_pixmap(conn, 1, mask, window, PREVIEW_WIDTH, PREVIEW_HEIGHT);
 
             let mask_gc = conn.generate_id();
-            xproto::create_gc(conn, mask_gc, mask, &transparent);
 
+            // Set content mask
+            xproto::create_gc(conn, mask_gc, mask, &transparent);
             xproto::poly_fill_rectangle(conn, mask, mask_gc, &[rect]);
 
             xproto::change_gc(conn, mask_gc, &solid);
-
             let arc = xproto::Arc::new(1, 1, PREVIEW_WIDTH-2, PREVIEW_HEIGHT-2, 0, 360 << 6);
             xproto::poly_fill_arc(conn, mask, mask_gc, &[arc]);
 
             xshape::mask(conn, xshape::SO_SET as u8, xshape::SK_CLIP as u8, window, 0, 0, mask);
 
             // Set border mask
-            
-            let border_mask = conn.generate_id();
-            xproto::create_pixmap(conn, 1, border_mask, window, PREVIEW_WIDTH, PREVIEW_HEIGHT);
-
             xproto::change_gc(conn, mask_gc, &transparent);
-
-            xproto::poly_fill_rectangle(conn, border_mask, mask_gc, &[rect]);
+            xproto::poly_fill_rectangle(conn, mask, mask_gc, &[rect]);
 
             xproto::change_gc(conn, mask_gc, &solid);
-
             let arc = xproto::Arc::new(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT, 0, 360 << 6);
-            xproto::poly_fill_arc(conn, border_mask, mask_gc, &[arc]);
+            xproto::poly_fill_arc(conn, mask, mask_gc, &[arc]);
 
-            xshape::mask(conn, xshape::SO_SET as u8, xshape::SK_BOUNDING as u8, window, 0, 0, border_mask);
+            xshape::mask(conn, xshape::SO_SET as u8, xshape::SK_BOUNDING as u8, window, 0, 0, mask);
         }
 
         Ok(Preview { conn, window, background_gc })
