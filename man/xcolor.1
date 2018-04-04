@@ -128,5 +128,12 @@ Disable daemon mode. Because of the way selections work in X11, \fBxcolor\fR
 forks into background when \fB\-\-selection\fR mode is used. This behavior can
 be disabled by defining \fIXCOLOR_FOREGROUND\fR environment variable.
 
+.TP
+.I XCOLOR_DISABLE_SHAPE
+Disable the use of shaped preview window. By default, \fBxcolor\fR tries to use
+a round-shaped preview window for displaying the currently selected color. This
+behavior can be disabled by defining \fIXCOLOR_DISABLE_SHAPE\fR environment
+variable.
+
 .SH AUTHORS
 Samuel Laurén <samuel.lauren@iki.fi>
