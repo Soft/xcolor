@@ -10,6 +10,9 @@ pub struct RGB {
     pub b: u8
 }
 
+pub const BLACK: RGB = RGB { r: 0, g: 0, b: 0 };
+pub const WHITE: RGB = RGB { r: 0xff, g: 0xff, b: 0xff };
+
 impl RGB {
     pub fn new(r: u8, g: u8, b: u8) -> RGB {
         RGB { r, g, b }
@@ -20,6 +23,36 @@ impl RGB {
             (n >> 4) == (n & 0xf)
         }
         compact(self.r) && compact(self.g) && compact(self.b)
+    }
+
+    pub fn is_dark(&self) -> bool {
+        self.distance(BLACK) < self.distance(WHITE)
+    }
+
+    pub fn distance(&self, other: RGB) -> f32 {
+        ((other.r as f32 - self.r as f32).powi(2) +
+         (other.g as f32 - self.g as f32).powi(2) +
+         (other.b as f32 - self.b as f32).powi(2))
+            .sqrt()
+    }
+
+    pub fn interpolate(&self, other: RGB, amount: f32) -> RGB {
+        fn lerp(a: u8, b: u8, x: f32) -> u8 {
+            ((1.0 - x) * (a as f32) + x * (b as f32)).ceil() as u8
+        }
+        RGB {
+            r: lerp(self.r, other.r, amount),
+            g: lerp(self.g, other.g, amount),
+            b: lerp(self.b, other.b, amount)
+        }
+    }
+
+    pub fn lighten(&self, amount: f32) -> RGB {
+        self.interpolate(WHITE, amount)
+    }
+
+    pub fn darken(&self, amount: f32) -> RGB {
+        self.interpolate(BLACK, amount)
     }
 }
 

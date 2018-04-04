@@ -17,6 +17,7 @@ const PREVIEW_HEIGHT: u16 = 32;
 const PREVIEW_OFFSET_X: u16 = 10;
 const PREVIEW_OFFSET_Y: u16 = 10;
 const WINDOW_NAME: &str = "xcolor";
+const BORDER_BLEND_AMOUNT: f32 = 0.3;
 
 pub struct Preview<'a> {
     conn: &'a Connection,
@@ -169,16 +170,22 @@ impl<'a> Preview<'a> {
     }
 
     pub fn redraw(&self, color: RGB) -> Result<(), Error> {
-        let color: u32 = color.into();
-
         // Content
-        let values: &[(u32, u32)] = &[ (xproto::GC_FOREGROUND, color) ];
+        let background_color: u32 = color.into();
+        let values: &[(u32, u32)] = &[ (xproto::GC_FOREGROUND, background_color) ];
         xproto::change_gc(self.conn, self.background_gc, values);
         let rect = xproto::Rectangle::new(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT);
         xproto::poly_fill_rectangle(self.conn, self.window, self.background_gc, &[rect]);
 
         // Border
-        let values: &[(u32, u32)] = &[ (xproto::CW_BORDER_PIXEL, !color) ];
+        let border_color = if color.is_dark() {
+            color.lighten(BORDER_BLEND_AMOUNT)
+        } else {
+            color.darken(BORDER_BLEND_AMOUNT)
+        };
+        let border_color: u32 = border_color.into();
+
+        let values: &[(u32, u32)] = &[ (xproto::CW_BORDER_PIXEL, border_color) ];
         xproto::change_window_attributes(self.conn, self.window, values);
 
         self.conn.flush();
