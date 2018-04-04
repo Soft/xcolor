@@ -26,8 +26,9 @@ use selection::{Selection, into_daemon, set_selection};
 use cli::get_cli;
 use location::wait_for_location;
 use color::window_color_at_point;
+use preview::Preview;
 
-fn run<'a>(args: ArgMatches<'a>) -> Result<(), Error> {
+fn run(args: &ArgMatches) -> Result<(), Error> {
     fn error(message: &str) -> ! {
         clap::Error::with_description(message, clap::ErrorKind::InvalidValue)
             .exit()
@@ -50,6 +51,10 @@ fn run<'a>(args: ArgMatches<'a>) -> Result<(), Error> {
                                           |v| v.parse::<Selection>().ok()));
     let use_selection = selection.is_some();
     let background = std::env::var("XCOLOR_FOREGROUND").is_err();
+
+    let use_preview = !args.is_present("no_preview");
+    let use_shape = std::env::var("XCOLOR_DISABLE_SHAPE").is_err();
+
     let mut in_parent = true;
 
     let (conn, screen) = Connection::connect(None)?;
@@ -59,7 +64,17 @@ fn run<'a>(args: ArgMatches<'a>) -> Result<(), Error> {
             .ok_or_else(|| err_msg("Could not find screen"))?;
         let root = screen.root();
 
-        if let Some(point) = wait_for_location(&conn, &screen)? {
+        let point = if use_preview {
+            let mut preview = Preview::create(&conn, &screen, use_shape)?;
+            preview.map()?;
+            let result = wait_for_location(&conn, &screen, |event| preview.handle_event(event))?;
+            preview.unmap()?;
+            result
+        } else {
+            wait_for_location(&conn, &screen, |_| Ok(false))?
+        };
+
+        if let Some(point) = point {
             let color = window_color_at_point(&conn, root, point)?;
             let output = formatter.format(color);
 
@@ -89,7 +104,7 @@ fn run<'a>(args: ArgMatches<'a>) -> Result<(), Error> {
 
 fn main() {
     let args = get_cli().get_matches();
-    if let Err(err) = run(args) {
+    if let Err(err) = run(&args) {
         eprintln!("error: {}", err);
         std::process::exit(1);
     }

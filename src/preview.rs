@@ -6,20 +6,23 @@ use xcb::xproto::Screen;
 use xcb::shape as xshape;
 
 use atoms;
+use color;
 use color::RGB;
 
 const PREVIEW_WIDTH: u16 = 32;
 const PREVIEW_HEIGHT: u16 = 32;
-const PREVIEW_OFFSET_X: u16 = 10;
-const PREVIEW_OFFSET_Y: u16 = 10;
+const PREVIEW_OFFSET_X: i16 = 10;
+const PREVIEW_OFFSET_Y: i16 = 10;
 const WINDOW_NAME: &str = "xcolor";
 const WINDOW_CLASS: &str = "xcolor\0XColor\0";
 const BORDER_BLEND_AMOUNT: f32 = 0.3;
 
 pub struct Preview<'a> {
     conn: &'a Connection,
+    root: xproto::Window,
     window: xproto::Window,
-    background_gc: xproto::Gc
+    background_gc: xproto::Gc,
+    color: RGB
 }
 
 impl<'a> Preview<'a> {
@@ -58,12 +61,21 @@ impl<'a> Preview<'a> {
             (xproto::CW_OVERRIDE_REDIRECT, 1)
         ];
 
+        let pointer = xproto::query_pointer(conn, root)
+            .get_reply()?;
+        let pointer_x = pointer.root_x();
+        let pointer_y = pointer.root_y();
+
+        let color = color::window_color_at_point(conn, root, (pointer_x, pointer_y))?;
+
         let border_width = if use_shaped { 0 } else { 1 };
+        let (position_x, position_y) = preview_position((pointer_x, pointer_y));
         xproto::create_window(conn,
                               xbase::COPY_FROM_PARENT as u8, // Depth
                               window, // Window
                               root, // Parent
-                              0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT, // Size
+                              position_x, position_y, // Location
+                              PREVIEW_WIDTH, PREVIEW_HEIGHT, // Size
                               border_width, // Border
                               xproto::WINDOW_CLASS_INPUT_OUTPUT as u16, // Class
                               xbase::COPY_FROM_PARENT, // Visual
@@ -153,7 +165,26 @@ impl<'a> Preview<'a> {
             xshape::mask(conn, xshape::SO_SET as u8, xshape::SK_BOUNDING as u8, window, 0, 0, mask);
         }
 
-        Ok(Preview { conn, window, background_gc })
+        Ok(Preview { conn, root, window, background_gc, color })
+    }
+
+    pub fn handle_event(&mut self, event: &xbase::GenericEvent) -> Result<bool, Error> {
+        match event.response_type() {
+            xproto::EXPOSE => self.redraw()?,
+            xproto::MOTION_NOTIFY => {
+                let event: &xproto::MotionNotifyEvent = unsafe {
+                    xbase::cast_event(&event)
+                };
+                let pointer_x = event.root_x();
+                let pointer_y = event.root_y();
+                let color = color::window_color_at_point(self.conn, self.root, (pointer_x, pointer_y))?;
+                self.color = color;
+                self.reposition((pointer_x, pointer_y))?;
+                self.redraw()?;
+            }
+            _ => return Ok(false)
+        }
+        Ok(true)
     }
 
     pub fn map(&self) -> Result<(), Error> {
@@ -169,29 +200,29 @@ impl<'a> Preview<'a> {
     }
 
     pub fn reposition(&self, (x, y): (i16, i16)) -> Result<(), Error> {
-        // These casts seem bad
+        let (x, y) = preview_position((x, y));
         let values: &[(u16, u32)] = &[
-            (xproto::CONFIG_WINDOW_X as u16, x as u32 + PREVIEW_OFFSET_X as u32),
-            (xproto::CONFIG_WINDOW_Y as u16, y as u32 + PREVIEW_OFFSET_Y as u32)
+            (xproto::CONFIG_WINDOW_X as u16, x as u32),
+            (xproto::CONFIG_WINDOW_Y as u16, y as u32)
         ];
         xproto::configure_window(self.conn, self.window, values);
         self.conn.flush();
         Ok(())
     }
 
-    pub fn redraw(&self, color: RGB) -> Result<(), Error> {
+    pub fn redraw(&self) -> Result<(), Error> {
         // Content
-        let background_color: u32 = color.into();
+        let background_color: u32 = self.color.into();
         let values: &[(u32, u32)] = &[ (xproto::GC_FOREGROUND, background_color) ];
         xproto::change_gc(self.conn, self.background_gc, values);
         let rect = xproto::Rectangle::new(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT);
         xproto::poly_fill_rectangle(self.conn, self.window, self.background_gc, &[rect]);
 
         // Border
-        let border_color = if color.is_dark() {
-            color.lighten(BORDER_BLEND_AMOUNT)
+        let border_color = if self.color.is_dark() {
+            self.color.lighten(BORDER_BLEND_AMOUNT)
         } else {
-            color.darken(BORDER_BLEND_AMOUNT)
+            self.color.darken(BORDER_BLEND_AMOUNT)
         };
         let border_color: u32 = border_color.into();
 
@@ -202,4 +233,9 @@ impl<'a> Preview<'a> {
         Ok(())
     }
 }
+
+fn preview_position((x, y): (i16, i16)) -> (i16, i16) {
+    (x + PREVIEW_OFFSET_X, y + PREVIEW_OFFSET_Y)
+}
+
 
