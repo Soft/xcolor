@@ -173,12 +173,11 @@ impl<'a> Preview<'a> {
             xproto::EXPOSE => self.redraw()?,
             xproto::MOTION_NOTIFY => {
                 let event: &xproto::MotionNotifyEvent = unsafe {
-                    xbase::cast_event(&event)
+                    xbase::cast_event(event)
                 };
                 let pointer_x = event.root_x();
                 let pointer_y = event.root_y();
-                let color = color::window_color_at_point(self.conn, self.root, (pointer_x, pointer_y))?;
-                self.color = color;
+                self.color = color::window_color_at_point(self.conn, self.root, (pointer_x, pointer_y))?;
                 self.reposition((pointer_x, pointer_y))?;
                 self.redraw()?;
             }
