@@ -33,15 +33,19 @@ impl<'a> Preview<'a> {
         let root = screen.root();
 
         // Intern atoms
+        let utf8_string = atoms::get(conn, "UTF8_STRING")?;
         let net_wm_window_type = atoms::get(conn, "_NET_WM_WINDOW_TYPE")?;
         let net_wm_window_type_tooltip = atoms::get(conn, "_NET_WM_WINDOW_TYPE_TOOLTIP")?;
         let net_wm_name = atoms::get(conn, "_NET_WM_NAME")?;
-        let utf8_string = atoms::get(conn, "UTF8_STRING")?;
         let net_wm_state = atoms::get(conn, "_NET_WM_STATE")?;
         let net_wm_state_above = atoms::get(conn, "_NET_WM_STATE_ABOVE")?;
         let net_wm_state_sticky = atoms::get(conn, "_NET_WM_STATE_STICKY")?;
         let net_wm_state_skip_taskbar = atoms::get(conn, "_NET_WM_STATE_SKIP_TASKBAR")?;
         let net_wm_state_skip_pager = atoms::get(conn, "_NET_WM_STATE_SKIP_PAGER")?;
+
+        // Check if SHAPE extension is available and if using it is desired
+        let shape_ext = conn.get_extension_data(xshape::id());
+        let use_shaped = use_shaped && shape_ext.map_or(false, |ext| ext.present());
 
         // Create GCs
         let values = [ (xproto::GC_FOREGROUND, screen.white_pixel()) ];
@@ -57,12 +61,13 @@ impl<'a> Preview<'a> {
             (xproto::CW_OVERRIDE_REDIRECT, 1)
         ];
 
+        let border_width = if use_shaped { 0 } else { 1 };
         xproto::create_window(conn,
                               xbase::COPY_FROM_PARENT as u8, // Depth
                               window, // Window
                               root, // Parent
                               0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT, // Size
-                              1, // Border
+                              border_width, // Border
                               xproto::WINDOW_CLASS_INPUT_OUTPUT as u16, // Class
                               xbase::COPY_FROM_PARENT, // Visual
                               &values)
@@ -111,8 +116,7 @@ impl<'a> Preview<'a> {
             .request_check()?;
 
         // Setup shape mask
-        let shape_ext = conn.get_extension_data(xshape::id());
-        if use_shaped && shape_ext.map_or(false, |ext| ext.present()) {
+        if use_shaped {
             let transparent = [ (xproto::GC_FOREGROUND, 0) ];
             let solid = [ (xproto::GC_FOREGROUND, 1) ];
             let rect = xproto::Rectangle::new(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT);
