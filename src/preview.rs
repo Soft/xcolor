@@ -8,21 +8,18 @@ use xcb::shape as xshape;
 use atoms;
 use color::RGB;
 
-// TODO:
-// - Set window class
-// - HiDPI
-
 const PREVIEW_WIDTH: u16 = 32;
 const PREVIEW_HEIGHT: u16 = 32;
 const PREVIEW_OFFSET_X: u16 = 10;
 const PREVIEW_OFFSET_Y: u16 = 10;
 const WINDOW_NAME: &str = "xcolor";
+const WINDOW_CLASS: &str = "xcolor\0XColor\0";
 const BORDER_BLEND_AMOUNT: f32 = 0.3;
 
 pub struct Preview<'a> {
     conn: &'a Connection,
     window: xproto::Window,
-    background_gc: xproto::Gc,
+    background_gc: xproto::Gc
 }
 
 impl<'a> Preview<'a> {
@@ -96,7 +93,7 @@ impl<'a> Preview<'a> {
                                 &wm_state)
             .request_check()?;
         
-        // Set window name
+        // Set window name & class
         xproto::change_property(conn,
                                 xproto::PROP_MODE_REPLACE as u8,
                                 window,
@@ -113,6 +110,15 @@ impl<'a> Preview<'a> {
                                 xproto::ATOM_STRING,
                                 8,
                                 WINDOW_NAME.as_bytes())
+            .request_check()?;
+
+        xproto::change_property(conn,
+                                xproto::PROP_MODE_REPLACE as u8,
+                                window,
+                                xproto::ATOM_WM_CLASS,
+                                xproto::ATOM_STRING,
+                                8,
+                                WINDOW_CLASS.as_bytes())
             .request_check()?;
 
         // Setup shape mask
