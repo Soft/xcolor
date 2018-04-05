@@ -7,7 +7,7 @@ xcolor \- lightweight color picker for X11
 .SH SYNOPSIS
 
 .B xcolor
-[\fB\-f\fR \fINAME\fR | \fB\-c\fR \fIFORMAT\fR] [\fB\-s\fR [\fISELECTION\fR]] [\fB\-v\fR] [\fB\-h\fR]
+[\fB\-f\fR \fINAME\fR | \fB\-c\fR \fIFORMAT\fR] [\fB\-s\fR [\fISELECTION\fR]] [\fB\-n\fR] [\fB\-v\fR] [\fB\-h\fR]
 
 .SH DESCRIPTION
 
@@ -35,6 +35,10 @@ explanation of template syntax. Conflicts with \fB\-\-format\fR.
 Save output to X11 selection. Possible values for \fISELECTION\fR are
 \fBprimary\fR and \fBsecondary\fR. If \fISELECTION\fR is not supplied,
 \fBprimary\fR is used.
+
+.TP
+.BR \-n ", " \-\-no\-preview
+Disable preview window.
 
 .TP
 .BR \-v ", " \-\-version
