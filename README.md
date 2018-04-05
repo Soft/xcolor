@@ -9,6 +9,8 @@
 Lightweight color picker for X11. Use mouse cursor to select colors visible
 anywhere on the screen to view their RGB representation.
 
+<img align="right" src="extra/screenshot.png">
+
 ## Installation
 
 ### GitHub Release Binaries
