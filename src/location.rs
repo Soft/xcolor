@@ -6,6 +6,9 @@ use xcb::base::Connection;
 use xcb::xproto;
 use xcb::xproto::Screen;
 
+// Left mouse button
+const SELECTION_BUTTON: xproto::Button = 1;
+
 pub fn wait_for_location<F>(conn: &Connection, screen: &Screen, mut handler: F)
                             -> Result<Option<(i16, i16)>, Error>
     where F: FnMut(&xbase::GenericEvent) -> Result<bool, Error> {
@@ -50,7 +53,9 @@ pub fn wait_for_location<F>(conn: &Connection, screen: &Screen, mut handler: F)
                     let event: &xproto::ButtonPressEvent = unsafe {
                         xbase::cast_event(&event)
                     };
-                    break Some((event.root_x(), event.root_y()));
+                    if event.detail() == SELECTION_BUTTON {
+                        break Some((event.root_x(), event.root_y()));
+                    }
                 },
                 _ => if !handler(&event)? {
                     break None
