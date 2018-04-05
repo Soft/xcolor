@@ -34,18 +34,21 @@ fn run(args: &ArgMatches) -> Result<(), Error> {
             .exit()
     }
 
-    let formatter = if let Some(custom) = args.value_of("custom") {
-        Box::new(custom.parse::<FormatString>()
-                 .unwrap_or_else(|_| error("Invalid format string")))
-            as Box<FormatColor>
+    let custom_format;
+    let simple_format;
+    let formatter: &FormatColor = if let Some(custom) = args.value_of("custom") {
+        custom_format = custom.parse::<FormatString>()
+            .unwrap_or_else(|_| error("Invalid format string"));
+        &custom_format
 
     } else {
-        Box::new(args.value_of("format")
-                 .unwrap_or("hex")
-                 .parse::<Format>()
-                 .unwrap_or_else(|e| error(&format!("{}", e))))
-            as Box<FormatColor>
+        simple_format = args.value_of("format")
+            .unwrap_or("hex")
+            .parse::<Format>()
+            .unwrap_or_else(|e| error(&format!("{}", e)));
+        &simple_format
     };
+
     let selection = args.values_of("selection")
         .and_then(|mut v| v.next().map_or(Some(Selection::Primary),
                                           |v| v.parse::<Selection>().ok()));
