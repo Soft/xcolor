@@ -156,3 +156,6 @@ above example string:
 In the output, we get the contents of the red color channel formatted in binary
 and padded with zeroes to be sixteen characters long.
 
+## Issues
+
+Bugs & Issues should be reported at [GitHub](https://github.com/Soft/xcolor/issues).
