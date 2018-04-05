@@ -71,7 +71,7 @@ fn run(args: &ArgMatches) -> Result<(), Error> {
             let mut preview = Preview::create(&conn, &screen, use_shape)?;
             wait_for_location(&conn, &screen, |event| preview.handle_event(event))?
         } else {
-            wait_for_location(&conn, &screen, |_| Ok(false))?
+            wait_for_location(&conn, &screen, |_| Ok(true))?
         };
 
         if let Some(point) = point {

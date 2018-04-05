@@ -221,6 +221,7 @@ impl<'a> Drop for Preview<'a> {
     }
 }
 
+#[inline]
 fn preview_position((x, y): (i16, i16)) -> (i16, i16) {
     (x + PREVIEW_OFFSET_X, y + PREVIEW_OFFSET_Y)
 }
