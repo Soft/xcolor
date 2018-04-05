@@ -79,8 +79,7 @@ impl<'a> Preview<'a> {
                               border_width, // Border
                               xproto::WINDOW_CLASS_INPUT_OUTPUT as u16, // Class
                               xbase::COPY_FROM_PARENT, // Visual
-                              &values)
-            .request_check()?;
+                              &values);
 
         // Window properties
         xproto::change_property(conn,
@@ -89,8 +88,7 @@ impl<'a> Preview<'a> {
                                 net_wm_window_type,
                                 xproto::ATOM_ATOM,
                                 32,
-                                &[net_wm_window_type_tooltip])
-            .request_check()?;
+                                &[net_wm_window_type_tooltip]);
 
         let wm_state = [net_wm_state_above,
                         net_wm_state_sticky,
@@ -102,8 +100,7 @@ impl<'a> Preview<'a> {
                                 net_wm_state,
                                 xproto::ATOM_ATOM,
                                 32,
-                                &wm_state)
-            .request_check()?;
+                                &wm_state);
         
         // Set window name & class
         xproto::change_property(conn,
@@ -112,8 +109,7 @@ impl<'a> Preview<'a> {
                                 net_wm_name,
                                 utf8_string,
                                 8,
-                                WINDOW_NAME.as_bytes())
-            .request_check()?;
+                                WINDOW_NAME.as_bytes());
 
         xproto::change_property(conn,
                                 xproto::PROP_MODE_REPLACE as u8,
@@ -121,8 +117,7 @@ impl<'a> Preview<'a> {
                                 xproto::ATOM_WM_NAME,
                                 xproto::ATOM_STRING,
                                 8,
-                                WINDOW_NAME.as_bytes())
-            .request_check()?;
+                                WINDOW_NAME.as_bytes());
 
         xproto::change_property(conn,
                                 xproto::PROP_MODE_REPLACE as u8,
@@ -130,8 +125,7 @@ impl<'a> Preview<'a> {
                                 xproto::ATOM_WM_CLASS,
                                 xproto::ATOM_STRING,
                                 8,
-                                WINDOW_CLASS.as_bytes())
-            .request_check()?;
+                                WINDOW_CLASS.as_bytes());
 
         // Setup shape mask
         if use_shaped {
