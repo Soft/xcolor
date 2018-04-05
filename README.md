@@ -6,10 +6,10 @@
 [![Rust Documentation](https://img.shields.io/badge/api-rustdoc-blue.svg)](https://docs.rs/crate/xcolor)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+<img align="right" src="https://raw.githubusercontent.com/Soft/xcolor/master/extra/screenshot.png">
+
 Lightweight color picker for X11. Use mouse cursor to select colors visible
 anywhere on the screen to view their RGB representation.
-
-<img align="right" src="extra/screenshot.png">
 
 ## Installation
 
