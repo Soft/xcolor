@@ -165,6 +165,8 @@ impl<'a> Preview<'a> {
             xshape::mask(conn, xshape::SO_SET as u8, xshape::SK_BOUNDING as u8, window, 0, 0, mask);
         }
 
+        xproto::map_window(conn, window);
+
         Ok(Preview { conn, root, window, background_gc, color })
     }
 
@@ -184,14 +186,6 @@ impl<'a> Preview<'a> {
             _ => return Ok(false)
         }
         Ok(true)
-    }
-
-    pub fn map(&self) {
-        xproto::map_window(self.conn, self.window);
-    }
-
-    pub fn unmap(&self) {
-        xproto::unmap_window(self.conn, self.window);
     }
 
     pub fn reposition(&self, (x, y): (i16, i16)) {
@@ -224,6 +218,12 @@ impl<'a> Preview<'a> {
         xproto::change_window_attributes(self.conn, self.window, values);
 
         self.conn.flush();
+    }
+}
+
+impl<'a> Drop for Preview<'a> {
+    fn drop(&mut self) {
+        xproto::unmap_window(self.conn, self.window);
     }
 }
 
