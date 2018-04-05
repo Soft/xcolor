@@ -9,6 +9,8 @@ use xcb::base::Connection;
 use xcb::xproto;
 use libc;
 
+use atoms;
+
 pub fn into_daemon() -> Result<ForkResult, Error> {
     match fork()? {
         parent@ForkResult::Parent { .. } => Ok(parent),
@@ -49,11 +51,9 @@ impl FromStr for Selection {
 
 impl Selection {
     fn to_atom(&self, conn: &Connection) -> Result<xproto::Atom, Error> {
-        Ok(match self {
-            &Selection::Primary => xproto::intern_atom(conn, false, "PRIMARY")
-                .get_reply()?.atom(),
-            &Selection::Secondary => xproto::intern_atom(conn, false, "SECONDARY")
-                .get_reply()?.atom()
+        Ok(match *self {
+            Selection::Primary => atoms::get(conn, "PRIMARY")?,
+            Selection::Secondary => atoms::get(conn, "SECONDARY")?
         })
     }
 }
@@ -72,10 +72,8 @@ pub fn set_selection(conn: &Connection,
                      selection: Selection,
                      string: &str) -> Result<(), Error> {
     let selection = selection.to_atom(conn)?;
-    let utf8_string = xproto::intern_atom(conn, false, "UTF8_STRING")
-        .get_reply()?.atom();
-    let targets = xproto::intern_atom(conn, false, "TARGETS")
-        .get_reply()?.atom();
+    let utf8_string = atoms::get(conn, "UTF8_STRING")?;
+    let targets = atoms::get(conn, "TARGETS")?;
 
     let window = conn.generate_id();
 

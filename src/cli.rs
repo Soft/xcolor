@@ -29,4 +29,8 @@ pub fn get_cli() -> App<'static, 'static> {
              .max_values(1)
              .possible_values(&["primary", "secondary"])
              .help("Output to selection (defaults to primary)"))
+        .arg(Arg::with_name("no_preview")
+             .short("n")
+             .long("no-preview")
+             .help("Disable preview popup"))
 }

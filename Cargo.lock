@@ -114,6 +114,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "lazy_static"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "libc"
 version = "0.2.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -287,6 +292,7 @@ version = "0.3.1"
 dependencies = [
  "clap 2.31.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.39 (registry+https://github.com/rust-lang/crates.io-index)",
  "nix 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "nom 3.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -308,6 +314,7 @@ dependencies = [
 "checksum failure_derive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "c7cdda555bb90c9bb67a3b670a0f42de8e73f5981524123ad8578aafec8ddb8b"
 "checksum gcc 0.3.54 (registry+https://github.com/rust-lang/crates.io-index)" = "5e33ec290da0d127825013597dbdfc28bee4964690c7ce1166cbc2a7bd08b1bb"
 "checksum iovec 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "dbe6e417e7d0975db6512b90796e8ce223145ac4e33c377e4a42882a0e88bb08"
+"checksum lazy_static 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "c8f31047daa365f19be14b47c29df4f7c3b581832407daabe6ae77397619237d"
 "checksum libc 0.2.39 (registry+https://github.com/rust-lang/crates.io-index)" = "f54263ad99207254cf58b5f701ecb432c717445ea2ee8af387334bdd1a03fdff"
 "checksum log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "89f010e843f2b1a31dbd316b3b8d443758bc634bed37aabade59c686d644e0a2"
 "checksum memchr 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "148fab2e51b4f1cfc66da2a7c32981d1d3c083a803978268bb11fe4b86925e7a"

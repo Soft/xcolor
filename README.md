@@ -9,6 +9,8 @@
 Lightweight color picker for X11. Use mouse cursor to select colors visible
 anywhere on the screen to view their RGB representation.
 
+<img align="right" src="extra/screenshot.png">
+
 ## Installation
 
 ### GitHub Release Binaries
@@ -56,7 +58,7 @@ Simply invoke the `xcolor` command to select a color. The selected color will be
 printed to the standard output. 
 
 ``` text
-xcolor 0.3.0
+xcolor 0.4.0
 Samuel Laurén <samuel.lauren@iki.fi>
 Lightweight color picker for X11
 
@@ -65,6 +67,7 @@ USAGE:
 
 FLAGS:
     -h, --help          Prints help information
+    -n, --no-preview    Disable preview popup
     -V, --version       Prints version information
 
 OPTIONS:
@@ -83,6 +86,16 @@ selection values are `primary` (the default) and `secondary`.
 Because of the way selections work in X11, `xcolor` forks into background when
 `-s` mode is used. This behavior can be disabled by defining `XCOLOR_FOREGROUND`
 environment variable.
+
+## Color Preview
+
+By default, the color currently under the cursor is displayed in a small preview
+window that follows the mouse. This behavior can be disabled by passing the `-n`
+flag.
+
+When supported by the display server, the preview window will be round-shaped.
+This behavior can be disabled by defining `XCOLOR_DISABLE_SHAPE` environment
+variable.
 
 ## Formatting
 

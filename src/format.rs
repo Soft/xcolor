@@ -3,7 +3,7 @@ use std::str::FromStr;
 use failure::{Error, err_msg};
 use nom::{IError, digit, anychar};
 
-use x11::RGB;
+use color::RGB;
 
 pub struct FormatString(Vec<FormatPart>);
 
@@ -86,11 +86,11 @@ pub trait FormatColor {
 }
 
 impl Channel {
-    fn extract(&self, (r, g, b): RGB) -> u8 {
+    fn extract(&self, color: RGB) -> u8 {
         match *self {
-            Channel::R => r,
-            Channel::G => g,
-            Channel::B => b
+            Channel::R => color.r,
+            Channel::G => color.g,
+            Channel::B => color.b
         }
     }
 }
@@ -165,33 +165,25 @@ impl FromStr for Format {
     }
 }
 
-
-fn is_compactable((r, g, b): RGB) -> bool {
-    fn compact(n: u8) -> bool {
-        (n >> 4) == (n & 0xf)
-    }
-    compact(r) && compact(g) && compact(b)
-}
-
 impl FormatColor for Format {
-    fn format(&self, (r, g, b): RGB) -> String {
+    fn format(&self, color: RGB) -> String {
         match *self {
            Format::LowercaseHex(ref comp) => {
-               if *comp == HexCompaction::Compact && is_compactable((r, g, b)) {
-                   format!("#{:x}{:x}{:x}", r & 0xf, g & 0xf, b & 0xf)
+               if *comp == HexCompaction::Compact && color.is_compactable() {
+                   format!("#{:x}{:x}{:x}", color.r & 0xf, color.g & 0xf, color.b & 0xf)
                } else {
-                   format!("#{:02x}{:02x}{:02x}", r, g, b)
+                   format!("#{:02x}{:02x}{:02x}", color.r, color.g, color.b)
                }
             },
            Format::UppercaseHex(ref comp) => {
-               if *comp == HexCompaction::Compact && is_compactable((r, g, b)) {
-                   format!("#{:X}{:X}{:X}", r & 0xf, g & 0xf, b & 0xf)
+               if *comp == HexCompaction::Compact && color.is_compactable() {
+                   format!("#{:X}{:X}{:X}", color.r & 0xf, color.g & 0xf, color.b & 0xf)
                } else {
-                   format!("#{:02X}{:02X}{:02X}", r, g, b)
+                   format!("#{:02X}{:02X}{:02X}", color.r, color.g, color.b)
                }
             },
-            Format::Plain => format!("{};{};{}", r, g, b),
-            Format::RGB => format!("rgb({}, {}, {})", r, g, b),
+            Format::Plain => format!("{};{};{}", color.r, color.g, color.b),
+            Format::RGB => format!("rgb({}, {}, {})", color.r, color.g, color.b),
         }
     }
 }
@@ -243,36 +235,27 @@ fn test_format_color() {
 }
 
 #[test]
-fn test_compaction() {
-    assert!(is_compactable((0xff, 0xff, 0xff)));
-    assert!(is_compactable((0xee, 0xee, 0xee)));
-    assert!(is_compactable((0x00, 0x00, 0x00)));
-    assert!(!is_compactable((0xf7, 0xf7, 0xf7)));
-    assert!(!is_compactable((0xff, 0xf7, 0xff)));
-}
-
-#[test]
 fn test_examples_from_readme() {
     let fmt: FormatString = "#%{02hr}%{02hg}%{02hb}".parse().unwrap();
-    assert_eq!(fmt.format((255, 0, 255)), "#ff00ff");
+    assert_eq!(fmt.format(RGB::new(255, 0, 255)), "#ff00ff");
 
     let fmt: FormatString = "#%{02Hr}%{02Hg}%{02Hb}".parse().unwrap();
-    assert_eq!(fmt.format((0, 255, 0)), "#00FF00");
+    assert_eq!(fmt.format(RGB::new(0, 255, 0)), "#00FF00");
 
     let fmt: FormatString = "rgb(%{r}, %{g}, %{b})".parse().unwrap();
-    assert_eq!(fmt.format((255, 255, 255)), "rgb(255, 255, 255)");
+    assert_eq!(fmt.format(RGB::new(255, 255, 255)), "rgb(255, 255, 255)");
 
     let fmt: FormatString = "%{r};%{g};%{b}".parse().unwrap();
-    assert_eq!(fmt.format((0, 0, 0)), "0;0;0");
+    assert_eq!(fmt.format(RGB::new(0, 0, 0)), "0;0;0");
 
     let fmt: FormatString = "%{r}, %{g}, %{b}".parse().unwrap();
-    assert_eq!(fmt.format((0, 0, 0)), "0, 0, 0");
+    assert_eq!(fmt.format(RGB::new(0, 0, 0)), "0, 0, 0");
 
     let fmt: FormatString = "Green: %{-4g}".parse().unwrap();
-    assert_eq!(fmt.format((0, 7, 0)), "Green: ---7");
+    assert_eq!(fmt.format(RGB::new(0, 7, 0)), "Green: ---7");
 
     let fmt: FormatString = "%{016Br}".parse().unwrap();
-    assert_eq!(fmt.format((3, 0, 0)), "0000000000000011");
+    assert_eq!(fmt.format(RGB::new(3, 0, 0)), "0000000000000011");
 }
 
 

@@ -5,11 +5,16 @@ extern crate nix;
 extern crate libc;
 #[macro_use]
 extern crate nom;
+#[macro_use]
+extern crate lazy_static;
 
 mod format;
-mod x11;
+mod preview;
 mod selection;
+mod location;
 mod cli;
+mod color;
+mod atoms;
 
 use failure::{Error, err_msg};
 use xcb::base::Connection;
@@ -19,30 +24,40 @@ use nix::unistd::ForkResult;
 use format::{Format, FormatString, FormatColor};
 use selection::{Selection, into_daemon, set_selection};
 use cli::get_cli;
+use location::wait_for_location;
+use color::window_color_at_point;
+use preview::Preview;
 
-fn run<'a>(args: ArgMatches<'a>) -> Result<(), Error> {
+fn run(args: &ArgMatches) -> Result<(), Error> {
     fn error(message: &str) -> ! {
         clap::Error::with_description(message, clap::ErrorKind::InvalidValue)
             .exit()
     }
 
-    let formatter = if let Some(custom) = args.value_of("custom") {
-        Box::new(custom.parse::<FormatString>()
-                 .unwrap_or_else(|_| error("Invalid format string")))
-            as Box<FormatColor>
+    let custom_format;
+    let simple_format;
+    let formatter: &FormatColor = if let Some(custom) = args.value_of("custom") {
+        custom_format = custom.parse::<FormatString>()
+            .unwrap_or_else(|_| error("Invalid format string"));
+        &custom_format
 
     } else {
-        Box::new(args.value_of("format")
-                 .unwrap_or("hex")
-                 .parse::<Format>()
-                 .unwrap_or_else(|e| error(&format!("{}", e))))
-            as Box<FormatColor>
+        simple_format = args.value_of("format")
+            .unwrap_or("hex")
+            .parse::<Format>()
+            .unwrap_or_else(|e| error(&format!("{}", e)));
+        &simple_format
     };
+
     let selection = args.values_of("selection")
         .and_then(|mut v| v.next().map_or(Some(Selection::Primary),
                                           |v| v.parse::<Selection>().ok()));
     let use_selection = selection.is_some();
     let background = std::env::var("XCOLOR_FOREGROUND").is_err();
+
+    let use_preview = !args.is_present("no_preview");
+    let use_shape = std::env::var("XCOLOR_DISABLE_SHAPE").is_err();
+
     let mut in_parent = true;
 
     let (conn, screen) = Connection::connect(None)?;
@@ -52,8 +67,15 @@ fn run<'a>(args: ArgMatches<'a>) -> Result<(), Error> {
             .ok_or_else(|| err_msg("Could not find screen"))?;
         let root = screen.root();
 
-        if let Some(point) = x11::wait_for_location(&conn, root)? {
-            let color = x11::window_color_at_point(&conn, root, point)?;
+        let point = if use_preview {
+            let mut preview = Preview::create(&conn, &screen, use_shape)?;
+            wait_for_location(&conn, &screen, |event| preview.handle_event(event))?
+        } else {
+            wait_for_location(&conn, &screen, |_| Ok(true))?
+        };
+
+        if let Some(point) = point {
+            let color = window_color_at_point(&conn, root, point)?;
             let output = formatter.format(color);
 
             if use_selection {
@@ -82,7 +104,7 @@ fn run<'a>(args: ArgMatches<'a>) -> Result<(), Error> {
 
 fn main() {
     let args = get_cli().get_matches();
-    if let Err(err) = run(args) {
+    if let Err(err) = run(&args) {
         eprintln!("error: {}", err);
         std::process::exit(1);
     }
