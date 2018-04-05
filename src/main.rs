@@ -69,9 +69,9 @@ fn run(args: &ArgMatches) -> Result<(), Error> {
 
         let point = if use_preview {
             let mut preview = Preview::create(&conn, &screen, use_shape)?;
-            preview.map()?;
+            preview.map();
             let result = wait_for_location(&conn, &screen, |event| preview.handle_event(event))?;
-            preview.unmap()?;
+            preview.unmap();
             result
         } else {
             wait_for_location(&conn, &screen, |_| Ok(false))?

@@ -170,7 +170,7 @@ impl<'a> Preview<'a> {
 
     pub fn handle_event(&mut self, event: &xbase::GenericEvent) -> Result<bool, Error> {
         match event.response_type() {
-            xproto::EXPOSE => self.redraw()?,
+            xproto::EXPOSE => self.redraw(),
             xproto::MOTION_NOTIFY => {
                 let event: &xproto::MotionNotifyEvent = unsafe {
                     xbase::cast_event(event)
@@ -178,27 +178,23 @@ impl<'a> Preview<'a> {
                 let pointer_x = event.root_x();
                 let pointer_y = event.root_y();
                 self.color = color::window_color_at_point(self.conn, self.root, (pointer_x, pointer_y))?;
-                self.reposition((pointer_x, pointer_y))?;
-                self.redraw()?;
+                self.reposition((pointer_x, pointer_y));
+                self.redraw();
             }
             _ => return Ok(false)
         }
         Ok(true)
     }
 
-    pub fn map(&self) -> Result<(), Error> {
-        xproto::map_window(self.conn, self.window)
-            .request_check()?;
-        Ok(())
+    pub fn map(&self) {
+        xproto::map_window(self.conn, self.window);
     }
 
-    pub fn unmap(&self) -> Result<(), Error> {
-        xproto::unmap_window(self.conn, self.window)
-            .request_check()?;
-        Ok(())
+    pub fn unmap(&self) {
+        xproto::unmap_window(self.conn, self.window);
     }
 
-    pub fn reposition(&self, (x, y): (i16, i16)) -> Result<(), Error> {
+    pub fn reposition(&self, (x, y): (i16, i16)) {
         let (x, y) = preview_position((x, y));
         let values: &[(u16, u32)] = &[
             (xproto::CONFIG_WINDOW_X as u16, x as u32),
@@ -206,10 +202,9 @@ impl<'a> Preview<'a> {
         ];
         xproto::configure_window(self.conn, self.window, values);
         self.conn.flush();
-        Ok(())
     }
 
-    pub fn redraw(&self) -> Result<(), Error> {
+    pub fn redraw(&self) {
         // Content
         let background_color: u32 = self.color.into();
         let values: &[(u32, u32)] = &[ (xproto::GC_FOREGROUND, background_color) ];
@@ -229,7 +224,6 @@ impl<'a> Preview<'a> {
         xproto::change_window_attributes(self.conn, self.window, values);
 
         self.conn.flush();
-        Ok(())
     }
 }
 
