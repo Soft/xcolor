@@ -8,8 +8,8 @@
 
 <img align="right" src="https://raw.githubusercontent.com/Soft/xcolor/master/extra/screenshot.png">
 
-Lightweight color picker for X11. Use mouse cursor to select colors visible
-anywhere on the screen to view their RGB representation.
+Lightweight color picker for X11. Use mouse to select colors visible anywhere on
+the screen to get their RGB representation.
 
 ## Installation
 
