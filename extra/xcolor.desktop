@@ -1,0 +1,16 @@
+[Desktop Entry]
+Name=XColor
+GenericName=Color Picker
+GenericName[de]=Farbwähler
+GenericName[fr]=Pipette à couleurs
+GenericName[se]=Färgväljare
+GenericName[fi]=Värinvalitsija
+GenericName[jp]=カラーピッカー
+Comment=Select colors visible anywhere on the screen to get their RGB representation
+Keywords=color;picker;select;design;
+TryExec=xcolor
+Exec=xcolor -s
+Terminal=false
+Type=Application
+Categories=Graphics;Utility;
+Icon=xcolor
