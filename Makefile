@@ -19,10 +19,10 @@ install: target/release/xcolor
 	install -D -m644 -- extra/icons/xcolor-48.png "$(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps/xcolor.png"
 	install -D -m644 -- extra/icons/xcolor-256.png "$(DESTDIR)$(PREFIX)/share/icons/hicolor/256x256/apps/xcolor.png"
 	install -D -m644 -- extra/icons/xcolor-512.png "$(DESTDIR)$(PREFIX)/share/icons/hicolor/512x512/apps/xcolor.png"
-	install -D -m644 -- extra/icons/xcolor.svg "$(DESTDIR)$(PREFIX)/share/icons/hicolor/scalable/apps/xcolor.png"
 
 help:
 	@echo "Available make targets:"
 	@echo "  all      - Build xcolor (default)"
 	@echo "  install  - Build and install xcolor"
 	@echo "  help     - Print this help"
+
