@@ -11,6 +11,7 @@ homepage = "https://github.com/Soft/xcolor"
 repository = "https://github.com/Soft/xcolor"
 build = "build.rs"
 exclude = ["docker/*", "_config.yml"]
+edition = "2018"
 
 [dependencies]
 failure = "0.1.1"

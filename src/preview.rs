@@ -5,9 +5,9 @@ use xcb::xproto;
 use xcb::xproto::Screen;
 use xcb::shape as xshape;
 
-use atoms;
-use color;
-use color::RGB;
+use crate::atoms;
+use crate::color;
+use crate::color::RGB;
 
 const PREVIEW_WIDTH: u16 = 32;
 const PREVIEW_HEIGHT: u16 = 32;

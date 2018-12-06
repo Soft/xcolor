@@ -1,4 +1,3 @@
-use std;
 use std::fs;
 use std::str::FromStr;
 use std::os::unix::io::IntoRawFd;
@@ -9,7 +8,7 @@ use xcb::base::Connection;
 use xcb::xproto;
 use libc;
 
-use atoms;
+use crate::atoms;
 
 pub fn into_daemon() -> Result<ForkResult, Error> {
     match fork()? {
@@ -69,7 +68,7 @@ impl Selection {
 
 pub fn set_selection(conn: &Connection,
                      root: xproto::Window,
-                     selection: Selection,
+                     selection: &Selection,
                      string: &str) -> Result<(), Error> {
     let selection = selection.to_atom(conn)?;
     let utf8_string = atoms::get(conn, "UTF8_STRING")?;

@@ -1,9 +1,9 @@
 use std::{iter, fmt};
 use std::str::FromStr;
 use failure::{Error, err_msg};
-use nom::{IError, digit, anychar};
+use nom::*;
 
-use color::RGB;
+use crate::color::RGB;
 
 pub struct FormatString(Vec<FormatPart>);
 
@@ -87,7 +87,7 @@ pub trait FormatColor {
 
 impl Channel {
     fn extract(&self, color: RGB) -> u8 {
-        match *self {
+        match self {
             Channel::R => color.r,
             Channel::G => color.g,
             Channel::B => color.b
@@ -98,7 +98,7 @@ impl Channel {
 impl NumberFormat {
     fn format<T>(&self, value: T) -> String
         where T: fmt::LowerHex + fmt::UpperHex + fmt::Octal + fmt::Binary + fmt::Display {
-        match *self {
+        match self {
             NumberFormat::LowercaseHex => format!("{:x}", value),
             NumberFormat::UppercaseHex => format!("{:X}", value),
             NumberFormat::Octal => format!("{:o}", value),
@@ -111,8 +111,8 @@ impl NumberFormat {
 impl FormatColor for FormatPart {
     fn format(&self, color: RGB) -> String {
         match self {
-            &FormatPart::Literal(ref s) => s.clone(),
-            &FormatPart::Expansion { ref channel, ref format, ref pad } => {
+            FormatPart::Literal(s) => s.clone(),
+            FormatPart::Expansion { channel, format, pad } => {
                 let value = channel.extract(color);
                 let base = format.format(value);
                 if let Some(Pad { char, len }) = *pad {
@@ -167,15 +167,15 @@ impl FromStr for Format {
 
 impl FormatColor for Format {
     fn format(&self, color: RGB) -> String {
-        match *self {
-           Format::LowercaseHex(ref comp) => {
+        match self {
+           Format::LowercaseHex(comp) => {
                if *comp == HexCompaction::Compact && color.is_compactable() {
                    format!("#{:x}{:x}{:x}", color.r & 0xf, color.g & 0xf, color.b & 0xf)
                } else {
                    format!("#{:02x}{:02x}{:02x}", color.r, color.g, color.b)
                }
             },
-           Format::UppercaseHex(ref comp) => {
+           Format::UppercaseHex(comp) => {
                if *comp == HexCompaction::Compact && color.is_compactable() {
                    format!("#{:X}{:X}{:X}", color.r & 0xf, color.g & 0xf, color.b & 0xf)
                } else {

@@ -1,13 +1,3 @@
-extern crate xcb;
-extern crate failure;
-extern crate clap;
-extern crate nix;
-extern crate libc;
-#[macro_use]
-extern crate nom;
-#[macro_use]
-extern crate lazy_static;
-
 mod format;
 mod preview;
 mod selection;
@@ -21,12 +11,12 @@ use xcb::base::Connection;
 use clap::ArgMatches;
 use nix::unistd::ForkResult;
 
-use format::{Format, FormatString, FormatColor};
-use selection::{Selection, into_daemon, set_selection};
-use cli::get_cli;
-use location::wait_for_location;
-use color::window_color_at_point;
-use preview::Preview;
+use crate::format::{Format, FormatString, FormatColor};
+use crate::selection::{Selection, into_daemon, set_selection};
+use crate::cli::get_cli;
+use crate::location::wait_for_location;
+use crate::color::window_color_at_point;
+use crate::preview::Preview;
 
 fn run(args: &ArgMatches) -> Result<(), Error> {
     fn error(message: &str) -> ! {
@@ -87,7 +77,7 @@ fn run(args: &ArgMatches) -> Result<(), Error> {
                 }
 
                 if !(background && in_parent) {
-                    set_selection(&conn, root, selection.unwrap(), &output)?;
+                    set_selection(&conn, root, &selection.unwrap(), &output)?;
                 }
             } else {
                 println!("{}", output);

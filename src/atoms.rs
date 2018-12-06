@@ -4,6 +4,7 @@ use std::collections::hash_map::Entry;
 use failure::{Error, err_msg};
 use xcb::Connection;
 use xcb::xproto;
+use lazy_static::*;
 
 lazy_static! {
     static ref ATOM_CACHE: Mutex<HashMap<&'static str, xproto::Atom>> = Mutex::new(HashMap::new());
