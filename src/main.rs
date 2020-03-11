@@ -26,7 +26,7 @@ fn run(args: &ArgMatches) -> Result<(), Error> {
 
     let custom_format;
     let simple_format;
-    let formatter: &FormatColor = if let Some(custom) = args.value_of("custom") {
+    let formatter: &dyn FormatColor = if let Some(custom) = args.value_of("custom") {
         custom_format = custom.parse::<FormatString>()
             .unwrap_or_else(|_| error("Invalid format string"));
         &custom_format
