@@ -1,19 +1,21 @@
-use std::{iter, fmt};
-use std::str::FromStr;
-use failure::{Error, err_msg};
+use failure::{err_msg, Error};
 use nom::*;
+use std::str::FromStr;
+use std::{fmt, iter};
 
 use crate::color::RGB;
 
 pub struct FormatString(Vec<FormatPart>);
 
 enum Channel {
-    R, G, B
+    R,
+    G,
+    B,
 }
 
 struct Pad {
     char: char,
-    len: u16
+    len: u16,
 }
 
 enum NumberFormat {
@@ -21,7 +23,7 @@ enum NumberFormat {
     UppercaseHex,
     Decimal,
     Octal,
-    Binary
+    Binary,
 }
 
 enum FormatPart {
@@ -29,8 +31,8 @@ enum FormatPart {
     Expansion {
         channel: Channel,
         format: NumberFormat,
-        pad: Option<Pad>
-    }
+        pad: Option<Pad>,
+    },
 }
 
 named!(literal<&str, FormatPart>,
@@ -55,18 +57,18 @@ named!(pad<&str, Pad>,
                  (Pad { char, len })));
 
 named!(expansion<&str, FormatPart>,
-       alt_complete!(
-           value!(FormatPart::Literal("%".to_owned()), tag_s!("%%")) |
-           do_parse!(tag_s!("%{") >>
-                     pad: opt!(pad) >>
-                     format: opt!(format) >>
-                     channel: channel >>
-                     tag_s!("}") >>
-                     (FormatPart::Expansion {
-                         channel,
-                         pad,
-                         format: format.unwrap_or(NumberFormat::Decimal)
-                     }))));
+alt_complete!(
+    value!(FormatPart::Literal("%".to_owned()), tag_s!("%%")) |
+    do_parse!(tag_s!("%{") >>
+              pad: opt!(pad) >>
+              format: opt!(format) >>
+              channel: channel >>
+              tag_s!("}") >>
+              (FormatPart::Expansion {
+                  channel,
+                  pad,
+                  format: format.unwrap_or(NumberFormat::Decimal)
+              }))));
 
 named!(parse_format_string<&str, FormatString>,
        do_parse!(parts: many0!(alt_complete!(literal | expansion)) >>
@@ -90,20 +92,22 @@ impl Channel {
         match self {
             Channel::R => color.r,
             Channel::G => color.g,
-            Channel::B => color.b
+            Channel::B => color.b,
         }
     }
 }
 
 impl NumberFormat {
     fn format<T>(&self, value: T) -> String
-        where T: fmt::LowerHex + fmt::UpperHex + fmt::Octal + fmt::Binary + fmt::Display {
+    where
+        T: fmt::LowerHex + fmt::UpperHex + fmt::Octal + fmt::Binary + fmt::Display,
+    {
         match self {
             NumberFormat::LowercaseHex => format!("{:x}", value),
             NumberFormat::UppercaseHex => format!("{:X}", value),
             NumberFormat::Octal => format!("{:o}", value),
             NumberFormat::Binary => format!("{:b}", value),
-            NumberFormat::Decimal => format!("{}", value)
+            NumberFormat::Decimal => format!("{}", value),
         }
     }
 }
@@ -112,7 +116,11 @@ impl FormatColor for FormatPart {
     fn format(&self, color: RGB) -> String {
         match self {
             FormatPart::Literal(s) => s.clone(),
-            FormatPart::Expansion { channel, format, pad } => {
+            FormatPart::Expansion {
+                channel,
+                format,
+                pad,
+            } => {
                 let value = channel.extract(color);
                 let base = format.format(value);
                 if let Some(Pad { char, len }) = *pad {
@@ -120,7 +128,7 @@ impl FormatColor for FormatPart {
                     if let Some(pad_len) = (len as usize).checked_sub(base_len) {
                         let mut padded: String = iter::repeat(char).take(pad_len).collect();
                         padded.push_str(&base);
-                        return padded
+                        return padded;
                     }
                 }
                 base
@@ -140,14 +148,14 @@ impl FormatColor for FormatString {
 #[derive(PartialEq)]
 pub enum HexCompaction {
     Compact,
-    Full
+    Full,
 }
 
 pub enum Format {
     LowercaseHex(HexCompaction),
     UppercaseHex(HexCompaction),
     Plain,
-    RGB
+    RGB,
 }
 
 impl FromStr for Format {
@@ -160,7 +168,7 @@ impl FromStr for Format {
             "HEX!" => Ok(Format::UppercaseHex(HexCompaction::Compact)),
             "plain" => Ok(Format::Plain),
             "rgb" => Ok(Format::RGB),
-            _ => Err(err_msg("Invalid format"))
+            _ => Err(err_msg("Invalid format")),
         }
     }
 }
@@ -168,20 +176,20 @@ impl FromStr for Format {
 impl FormatColor for Format {
     fn format(&self, color: RGB) -> String {
         match self {
-           Format::LowercaseHex(comp) => {
-               if *comp == HexCompaction::Compact && color.is_compactable() {
-                   format!("#{:x}{:x}{:x}", color.r & 0xf, color.g & 0xf, color.b & 0xf)
-               } else {
-                   format!("#{:02x}{:02x}{:02x}", color.r, color.g, color.b)
-               }
-            },
-           Format::UppercaseHex(comp) => {
-               if *comp == HexCompaction::Compact && color.is_compactable() {
-                   format!("#{:X}{:X}{:X}", color.r & 0xf, color.g & 0xf, color.b & 0xf)
-               } else {
-                   format!("#{:02X}{:02X}{:02X}", color.r, color.g, color.b)
-               }
-            },
+            Format::LowercaseHex(comp) => {
+                if *comp == HexCompaction::Compact && color.is_compactable() {
+                    format!("#{:x}{:x}{:x}", color.r & 0xf, color.g & 0xf, color.b & 0xf)
+                } else {
+                    format!("#{:02x}{:02x}{:02x}", color.r, color.g, color.b)
+                }
+            }
+            Format::UppercaseHex(comp) => {
+                if *comp == HexCompaction::Compact && color.is_compactable() {
+                    format!("#{:X}{:X}{:X}", color.r & 0xf, color.g & 0xf, color.b & 0xf)
+                } else {
+                    format!("#{:02X}{:02X}{:02X}", color.r, color.g, color.b)
+                }
+            }
             Format::Plain => format!("{};{};{}", color.r, color.g, color.b),
             Format::RGB => format!("rgb({}, {}, {})", color.r, color.g, color.b),
         }
@@ -208,18 +216,25 @@ fn test_pad() {
 #[test]
 fn test_expansion() {
     match expansion("%{r}").unwrap().1 {
-        FormatPart::Expansion { channel: Channel::R, .. } => (),
-        _ => panic!()
+        FormatPart::Expansion {
+            channel: Channel::R,
+            ..
+        } => (),
+        _ => panic!(),
     }
 
     match expansion("%{04b}").unwrap().1 {
-        FormatPart::Expansion { channel: Channel::B, pad: Some(Pad { char: '0', len: 4 }), .. } => (),
-        _ => panic!()
+        FormatPart::Expansion {
+            channel: Channel::B,
+            pad: Some(Pad { char: '0', len: 4 }),
+            ..
+        } => (),
+        _ => panic!(),
     }
 
     match expansion("%%").unwrap().1 {
         FormatPart::Literal(ref s) if s == "%" => (),
-        _ => panic!()
+        _ => panic!(),
     }
 }
 
@@ -257,5 +272,3 @@ fn test_examples_from_readme() {
     let fmt: FormatString = "%{016Br}".parse().unwrap();
     assert_eq!(fmt.format(RGB::new(3, 0, 0)), "0000000000000011");
 }
-
-

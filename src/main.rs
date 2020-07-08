@@ -1,47 +1,48 @@
-mod format;
-mod preview;
-mod selection;
-mod location;
+mod atoms;
 mod cli;
 mod color;
-mod atoms;
+mod format;
+mod location;
+mod preview;
+mod selection;
 
-use failure::{Error, err_msg};
-use xcb::base::Connection;
 use clap::ArgMatches;
+use failure::{err_msg, Error};
 use nix::unistd::ForkResult;
+use xcb::base::Connection;
 
-use crate::format::{Format, FormatString, FormatColor};
-use crate::selection::{Selection, into_daemon, set_selection};
 use crate::cli::get_cli;
-use crate::location::wait_for_location;
 use crate::color::window_color_at_point;
+use crate::format::{Format, FormatColor, FormatString};
+use crate::location::wait_for_location;
 use crate::preview::Preview;
+use crate::selection::{into_daemon, set_selection, Selection};
 
 fn run(args: &ArgMatches) -> Result<(), Error> {
     fn error(message: &str) -> ! {
-        clap::Error::with_description(message, clap::ErrorKind::InvalidValue)
-            .exit()
+        clap::Error::with_description(message, clap::ErrorKind::InvalidValue).exit()
     }
 
     let custom_format;
     let simple_format;
     let formatter: &dyn FormatColor = if let Some(custom) = args.value_of("custom") {
-        custom_format = custom.parse::<FormatString>()
+        custom_format = custom
+            .parse::<FormatString>()
             .unwrap_or_else(|_| error("Invalid format string"));
         &custom_format
-
     } else {
-        simple_format = args.value_of("format")
+        simple_format = args
+            .value_of("format")
             .unwrap_or("hex")
             .parse::<Format>()
             .unwrap_or_else(|e| error(&format!("{}", e)));
         &simple_format
     };
 
-    let selection = args.values_of("selection")
-        .and_then(|mut v| v.next().map_or(Some(Selection::Primary),
-                                          |v| v.parse::<Selection>().ok()));
+    let selection = args.values_of("selection").and_then(|mut v| {
+        v.next()
+            .map_or(Some(Selection::Clipboard), |v| v.parse::<Selection>().ok())
+    });
     let use_selection = selection.is_some();
     let background = std::env::var("XCOLOR_FOREGROUND").is_err();
 
@@ -53,7 +54,10 @@ fn run(args: &ArgMatches) -> Result<(), Error> {
     let (conn, screen) = Connection::connect(None)?;
 
     {
-        let screen = conn.get_setup().roots().nth(screen as usize)
+        let screen = conn
+            .get_setup()
+            .roots()
+            .nth(screen as usize)
             .ok_or_else(|| err_msg("Could not find screen"))?;
         let root = screen.root();
 
@@ -72,7 +76,7 @@ fn run(args: &ArgMatches) -> Result<(), Error> {
                 if background {
                     in_parent = match into_daemon()? {
                         ForkResult::Parent { .. } => true,
-                        ForkResult::Child => false
+                        ForkResult::Child => false,
                     }
                 }
 

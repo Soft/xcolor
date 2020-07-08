@@ -1,17 +1,21 @@
+use failure::{err_msg, Error};
 use std;
-use xcb::Connection;
 use xcb::xproto;
-use failure::{Error, err_msg};
+use xcb::Connection;
 
 #[derive(Clone, Copy, PartialEq)]
 pub struct RGB {
     pub r: u8,
     pub g: u8,
-    pub b: u8
+    pub b: u8,
 }
 
 pub const BLACK: RGB = RGB { r: 0, g: 0, b: 0 };
-pub const WHITE: RGB = RGB { r: 0xff, g: 0xff, b: 0xff };
+pub const WHITE: RGB = RGB {
+    r: 0xff,
+    g: 0xff,
+    b: 0xff,
+};
 
 impl RGB {
     pub const fn new(r: u8, g: u8, b: u8) -> RGB {
@@ -30,10 +34,10 @@ impl RGB {
     }
 
     pub fn distance(self, other: RGB) -> f32 {
-        ((f32::from(other.r) - f32::from(self.r)).powi(2) +
-         (f32::from(other.g) - f32::from(self.g)).powi(2) +
-         (f32::from(other.b) - f32::from(self.b)).powi(2))
-            .sqrt()
+        ((f32::from(other.r) - f32::from(self.r)).powi(2)
+            + (f32::from(other.g) - f32::from(self.g)).powi(2)
+            + (f32::from(other.b) - f32::from(self.b)).powi(2))
+        .sqrt()
     }
 
     pub fn interpolate(self, other: RGB, amount: f32) -> RGB {
@@ -43,7 +47,7 @@ impl RGB {
         RGB {
             r: lerp(self.r, other.r, amount),
             g: lerp(self.g, other.g, amount),
-            b: lerp(self.b, other.b, amount)
+            b: lerp(self.b, other.b, amount),
         }
     }
 
@@ -62,14 +66,22 @@ impl From<RGB> for u32 {
     }
 }
 
-pub fn window_color_at_point(conn: &Connection, window: xproto::Window, (x, y): (i16, i16))
-                         -> Result<RGB, Error> {
-    let reply = xproto::get_image(conn,
-                                  xproto::IMAGE_FORMAT_Z_PIXMAP as u8,
-                                  window,
-                                  x, y, 1, 1,
-                                  std::u32::MAX)
-        .get_reply()?;
+pub fn window_color_at_point(
+    conn: &Connection,
+    window: xproto::Window,
+    (x, y): (i16, i16),
+) -> Result<RGB, Error> {
+    let reply = xproto::get_image(
+        conn,
+        xproto::IMAGE_FORMAT_Z_PIXMAP as u8,
+        window,
+        x,
+        y,
+        1,
+        1,
+        std::u32::MAX,
+    )
+    .get_reply()?;
     if reply.depth() != 24 {
         // TODO: Figure out what to do with these
         return Err(err_msg("Unsupported color depth"));
