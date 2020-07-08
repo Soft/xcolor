@@ -3,6 +3,7 @@
 [![Build Status](https://api.travis-ci.org/Soft/xcolor.svg?branch=master)](https://travis-ci.org/Soft/xcolor)
 [![Latest Version](https://img.shields.io/crates/v/xcolor.svg)](https://crates.io/crates/xcolor)
 [![GitHub release](https://img.shields.io/github/release/Soft/xcolor.svg)](https://github.com/Soft/xcolor/releases)
+[![dependency status](https://deps.rs/repo/github/soft/xcolor/status.svg)](https://deps.rs/repo/github/soft/xcolor)
 [![Rust Documentation](https://img.shields.io/badge/api-rustdoc-blue.svg)](https://docs.rs/crate/xcolor)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -73,7 +74,7 @@ FLAGS:
 OPTIONS:
     -c, --custom <FORMAT>          Custom output format
     -f, --format <NAME>            Output format (defaults to hex) [possible values: hex, HEX, hex!, HEX!, plain, rgb]
-    -s, --selection <SELECTION>    Output to selection (defaults to primary) [possible values: primary, secondary]
+    -s, --selection <SELECTION>    Output to selection (defaults to clipboard) [possible values: clipboard, primary, secondary]
 ```
 
 ## Saving to Selection
@@ -81,7 +82,7 @@ OPTIONS:
 By default, the selected color is printed to the standard output. By specifying
 the `-s` flag, `xcolor` can be instructed to instead save the color to X11's
 selection. The selection to use can be specified as an argument. Possible
-selection values are `primary` (the default) and `secondary`.
+selection values are `clipboard` (the default), `primary`, and `secondary`.
 
 Because of the way selections work in X11, `xcolor` forks into background when
 `-s` mode is used. This behavior can be disabled by defining `XCOLOR_FOREGROUND`
