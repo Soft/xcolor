@@ -1,12 +1,23 @@
-use anyhow::{anyhow, Error, Result};
-use nom::*;
 use std::str::FromStr;
 use std::{fmt, iter};
+use std::num::ParseIntError;
+
+use nom::branch::alt;
+use nom::bytes::complete::{tag, take_till1};
+use nom::character::complete::{anychar, digit1};
+use nom::combinator::{all_consuming, complete, map, map_res, opt, value};
+use nom::error::{ParseError, FromExternalError};
+use nom::multi::many0;
+use nom::sequence::{preceded, terminated, tuple};
+use nom::IResult;
+
+use anyhow::{anyhow, Error, Result};
 
 use crate::color::ARGB;
 
 pub struct FormatString(Vec<FormatPart>);
 
+#[derive(Clone, Copy)]
 enum Channel {
     R,
     G,
@@ -18,6 +29,7 @@ struct Pad {
     len: u16,
 }
 
+#[derive(Clone, Copy)]
 enum NumberFormat {
     LowercaseHex,
     UppercaseHex,
@@ -35,51 +47,81 @@ enum FormatPart {
     },
 }
 
-named!(literal<&str, FormatPart>,
-       map!(take_till1_s!(|c: char| c == '%'),
-            |s: &str| FormatPart::Literal(s.to_owned())));
+fn literal<'a, E>(input: &'a str) -> IResult<&str, FormatPart, E>
+where
+    E: ParseError<&'a str>,
+{
+    map(take_till1(|c| c == '%'), |s: &str| {
+        FormatPart::Literal(s.to_owned())
+    })(input)
+}
 
-named!(channel<&str, Channel>,
-       alt_complete!(value!(Channel::R, tag_s!("r")) |
-                     value!(Channel::G, tag_s!("g")) |
-                     value!(Channel::B, tag_s!("b"))));
+fn channel<'a, E>(input: &'a str) -> IResult<&str, Channel, E>
+where
+    E: ParseError<&'a str>,
+{
+    alt((
+        value(Channel::R, tag("r")),
+        value(Channel::G, tag("g")),
+        value(Channel::B, tag("b")),
+    ))(input)
+}
 
-named!(format<&str, NumberFormat>,
-       alt_complete!(value!(NumberFormat::LowercaseHex, tag_s!("h")) |
-                     value!(NumberFormat::UppercaseHex, tag_s!("H")) |
-                     value!(NumberFormat::Octal,        tag_s!("o")) |
-                     value!(NumberFormat::Binary,       tag_s!("B")) |
-                     value!(NumberFormat::Decimal,      tag_s!("d"))));
+fn format<'a, E>(input: &'a str) -> IResult<&str, NumberFormat, E>
+where
+    E: ParseError<&'a str>,
+{
+    alt((
+        value(NumberFormat::LowercaseHex, tag("h")),
+        value(NumberFormat::UppercaseHex, tag("H")),
+        value(NumberFormat::Octal, tag("o")),
+        value(NumberFormat::Binary, tag("B")),
+        value(NumberFormat::Decimal, tag("d")),
+    ))(input)
+}
 
-named!(pad<&str, Pad>,
-       do_parse!(char: anychar >> // Should this be more restricted?
-                 len: map_res!(digit, FromStr::from_str) >>
-                 (Pad { char, len })));
+fn pad<'a, E>(input: &'a str) -> IResult<&str, Pad, E>
+where
+    E: ParseError<&'a str> + FromExternalError<&'a str, ParseIntError>,
+{
+    let digit = map_res(digit1, |s: &str| s.parse::<u16>());
+    map(tuple((anychar, digit)), |(char, len)| Pad { char, len })(input)
+}
 
-named!(expansion<&str, FormatPart>,
-alt_complete!(
-    value!(FormatPart::Literal("%".to_owned()), tag_s!("%%")) |
-    do_parse!(tag_s!("%{") >>
-              pad: opt!(pad) >>
-              format: opt!(format) >>
-              channel: channel >>
-              tag_s!("}") >>
-              (FormatPart::Expansion {
-                  channel,
-                  pad,
-                  format: format.unwrap_or(NumberFormat::Decimal)
-              }))));
+fn expansion<'a, E>(input: &'a str) -> IResult<&str, FormatPart, E>
+where
+    E: ParseError<&'a str> + FromExternalError<&'a str, ParseIntError>,
+{
+    let escape = map(tag("%%"), |_| FormatPart::Literal("%".to_owned()));
+    let inner = complete(map(
+        tuple((opt(pad), opt(format), channel)),
+        |(pad, format, channel)| FormatPart::Expansion {
+            channel,
+            pad,
+            format: format.unwrap_or(NumberFormat::Decimal),
+        },
+    ));
+    let expansion = preceded(tag("%{"), terminated(inner, tag("}")));
+    alt((escape, expansion))(input)
+}
 
-named!(parse_format_string<&str, FormatString>,
-       do_parse!(parts: many0!(alt_complete!(literal | expansion)) >>
-                 eof!() >>
-                 (FormatString(parts))));
+fn parse_format_string<'a, E>(input: &'a str) -> IResult<&str, FormatString, E>
+where
+    E: ParseError<&'a str> + FromExternalError<&'a str, ParseIntError>,
+{
+    map(
+        all_consuming(many0(alt((literal, expansion)))),
+        FormatString,
+    )(input)
+}
 
 impl FromStr for FormatString {
-    type Err = IError;
+    type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        parse_format_string(s).to_full_result()
+        parse_format_string::<()>(s)
+            .map(|(_, result)| result)
+            .map_err(|_| anyhow!("Invalid format string"))
     }
 }
 
@@ -200,22 +242,27 @@ impl FormatColor for Format {
 
 #[test]
 fn test_literal() {
-    assert_eq!(literal("foo%bar").unwrap().0, "%bar");
+    assert_eq!(literal::<()>("foo%bar").unwrap().0, "%bar");
 }
 
 #[test]
 fn test_pad() {
-    assert_eq!(pad("0000").unwrap().1.len, 0);
-    assert_eq!(pad("123").unwrap().1.len, 23);
-    assert_eq!(pad("001").unwrap().1.len, 1);
-    assert!(pad("1").to_full_result().is_err());
-    assert!(pad("").to_full_result().is_err());
-    assert!(pad("x").to_full_result().is_err());
+    assert_eq!(pad::<()>("#0").unwrap().1.char, '#');
+    assert_eq!(pad::<()>("-10").unwrap().1.char, '-');
+    assert_eq!(pad::<()>("-10").unwrap().1.len, 10);
+    assert_eq!(pad::<()>("0000").unwrap().1.len, 0);
+    assert_eq!(pad::<()>("123").unwrap().1.len, 23);
+    assert_eq!(pad::<()>("001").unwrap().1.len, 1);
+    assert_eq!(pad::<()>("065535").unwrap().1.len, 65535);
+    assert!(pad::<()>("065536").is_err());
+    assert!(pad::<()>("1").is_err());
+    assert!(pad::<()>("").is_err());
+    assert!(pad::<()>("x").is_err());
 }
 
 #[test]
 fn test_expansion() {
-    match expansion("%{r}").unwrap().1 {
+    match expansion::<()>("%{r}").unwrap().1 {
         FormatPart::Expansion {
             channel: Channel::R,
             ..
@@ -223,7 +270,7 @@ fn test_expansion() {
         _ => panic!(),
     }
 
-    match expansion("%{04b}").unwrap().1 {
+    match expansion::<()>("%{04b}").unwrap().1 {
         FormatPart::Expansion {
             channel: Channel::B,
             pad: Some(Pad { char: '0', len: 4 }),
@@ -232,7 +279,7 @@ fn test_expansion() {
         _ => panic!(),
     }
 
-    match expansion("%%").unwrap().1 {
+    match expansion::<()>("%%").unwrap().1 {
         FormatPart::Literal(ref s) if s == "%" => (),
         _ => panic!(),
     }
