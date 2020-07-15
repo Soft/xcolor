@@ -1,7 +1,8 @@
 use anyhow::{anyhow, Error, Result};
-use libc;
 use nix::unistd::{self, fork, ForkResult};
 use std::fs;
+use std::io;
+use std::os::unix::io::AsRawFd;
 use std::os::unix::io::IntoRawFd;
 use std::str::FromStr;
 use xcb::base as xbase;
@@ -16,13 +17,16 @@ pub fn into_daemon() -> Result<ForkResult> {
         child @ ForkResult::Child => {
             unistd::setsid()?;
             std::env::set_current_dir("/")?;
-            // Not sure if this is safe...
             let dev_null = fs::OpenOptions::new()
                 .read(true)
                 .write(true)
                 .open("/dev/null")?
                 .into_raw_fd();
-            for fd in &[libc::STDIN_FILENO, libc::STDOUT_FILENO, libc::STDERR_FILENO] {
+            for fd in &[
+                io::stdin().as_raw_fd(),
+                io::stdout().as_raw_fd(),
+                io::stderr().as_raw_fd(),
+            ] {
                 unistd::close(*fd)?;
                 unistd::dup2(dev_null, *fd)?;
             }
