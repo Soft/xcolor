@@ -1,6 +1,6 @@
 use std;
 
-use failure::{err_msg, Error};
+use anyhow::{anyhow, Result};
 use xcb::base as xbase;
 use xcb::base::Connection;
 use xcb::xproto;
@@ -13,9 +13,9 @@ pub fn wait_for_location<F>(
     conn: &Connection,
     screen: &Screen,
     mut handler: F,
-) -> Result<Option<(i16, i16)>, Error>
+) -> Result<Option<(i16, i16)>>
 where
-    F: FnMut(&xbase::GenericEvent) -> Result<bool, Error>,
+    F: FnMut(&xbase::GenericEvent) -> Result<bool>,
 {
     const XC_CROSSHAIR: u16 = 34;
 
@@ -56,7 +56,7 @@ where
     .get_reply()?;
 
     if reply.status() != xproto::GRAB_STATUS_SUCCESS as u8 {
-        return Err(err_msg("Could not grab pointer"));
+        return Err(anyhow!("Could not grab pointer"));
     }
 
     let result = loop {

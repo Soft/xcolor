@@ -1,4 +1,4 @@
-use failure::{err_msg, Error};
+use anyhow::{anyhow, Result};
 use std;
 use xcb::xproto;
 use xcb::Connection;
@@ -70,7 +70,7 @@ pub fn window_color_at_point(
     conn: &Connection,
     window: xproto::Window,
     (x, y): (i16, i16),
-) -> Result<RGB, Error> {
+) -> Result<RGB> {
     let reply = xproto::get_image(
         conn,
         xproto::IMAGE_FORMAT_Z_PIXMAP as u8,
@@ -84,7 +84,7 @@ pub fn window_color_at_point(
     .get_reply()?;
     if reply.depth() != 24 {
         // TODO: Figure out what to do with these
-        return Err(err_msg("Unsupported color depth"));
+        return Err(anyhow!("Unsupported color depth"));
     }
     let data = reply.data();
     let r = data[2];

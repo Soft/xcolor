@@ -1,4 +1,4 @@
-use failure::{err_msg, Error};
+use anyhow::{anyhow, Error};
 use libc;
 use nix::unistd::{self, fork, ForkResult};
 use std::fs;
@@ -45,7 +45,7 @@ impl FromStr for Selection {
             "primary" => Ok(Selection::Primary),
             "secondary" => Ok(Selection::Secondary),
             "clipboard" => Ok(Selection::Clipboard),
-            _ => Err(err_msg("Invalid selection")),
+            _ => Err(anyhow!("Invalid selection")),
         }
     }
 }
@@ -105,7 +105,7 @@ pub fn set_selection(
         .owner()
         != window
     {
-        return Err(err_msg("Could not take selection ownership"));
+        return Err(anyhow!("Could not take selection ownership"));
     }
 
     loop {

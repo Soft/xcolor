@@ -1,4 +1,4 @@
-use failure::Error;
+use anyhow::Result;
 use xcb::base as xbase;
 use xcb::base::Connection;
 use xcb::shape as xshape;
@@ -26,11 +26,7 @@ pub struct Preview<'a> {
 }
 
 impl<'a> Preview<'a> {
-    pub fn create(
-        conn: &'a Connection,
-        screen: &Screen,
-        use_shaped: bool,
-    ) -> Result<Preview<'a>, Error> {
+    pub fn create(conn: &'a Connection, screen: &Screen, use_shaped: bool) -> Result<Preview<'a>> {
         let root = screen.root();
 
         // Intern atoms
@@ -202,7 +198,7 @@ impl<'a> Preview<'a> {
         })
     }
 
-    pub fn handle_event(&mut self, event: &xbase::GenericEvent) -> Result<bool, Error> {
+    pub fn handle_event(&mut self, event: &xbase::GenericEvent) -> Result<bool> {
         match event.response_type() {
             xproto::EXPOSE => self.redraw(),
             xproto::MOTION_NOTIFY => {

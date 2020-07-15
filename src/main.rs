@@ -6,8 +6,8 @@ mod location;
 mod preview;
 mod selection;
 
+use anyhow::{anyhow, Result};
 use clap::ArgMatches;
-use failure::{err_msg, Error};
 use nix::unistd::ForkResult;
 use xcb::base::Connection;
 
@@ -18,11 +18,11 @@ use crate::location::wait_for_location;
 use crate::preview::Preview;
 use crate::selection::{into_daemon, set_selection, Selection};
 
-fn run(args: &ArgMatches) -> Result<(), Error> {
-    fn error(message: &str) -> ! {
-        clap::Error::with_description(message, clap::ErrorKind::InvalidValue).exit()
-    }
+fn error(message: &str) -> ! {
+    clap::Error::with_description(message, clap::ErrorKind::InvalidValue).exit()
+}
 
+fn run(args: &ArgMatches) -> Result<()> {
     let custom_format;
     let simple_format;
     let formatter: &dyn FormatColor = if let Some(custom) = args.value_of("custom") {
@@ -58,7 +58,7 @@ fn run(args: &ArgMatches) -> Result<(), Error> {
             .get_setup()
             .roots()
             .nth(screen as usize)
-            .ok_or_else(|| err_msg("Could not find screen"))?;
+            .ok_or_else(|| anyhow!("Could not find screen"))?;
         let root = screen.root();
 
         let point = if use_preview {
