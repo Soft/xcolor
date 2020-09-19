@@ -1,7 +1,8 @@
-use clap::{App, Arg};
+use clap::{App, AppSettings, Arg};
 
 pub fn get_cli() -> App<'static, 'static> {
     App::new(env!("CARGO_PKG_NAME"))
+        .setting(AppSettings::ColoredHelp)
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
