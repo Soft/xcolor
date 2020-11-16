@@ -1,22 +1,25 @@
 mod atoms;
 mod cli;
 mod color;
+mod draw;
 mod format;
 mod location;
-mod preview;
+mod pixel;
 mod selection;
+mod util;
 
-use clap::ArgMatches;
+use clap::{value_t, ArgMatches, ErrorKind};
 use failure::{err_msg, Error};
 use nix::unistd::ForkResult;
 use xcb::base::Connection;
 
 use crate::cli::get_cli;
-use crate::color::window_color_at_point;
 use crate::format::{Format, FormatColor, FormatString};
 use crate::location::wait_for_location;
-use crate::preview::Preview;
 use crate::selection::{into_daemon, set_selection, Selection};
+
+const DEFAULT_PREVIEW_SIZE: u32 = 256 - 1;
+const DEFAULT_SCALE: u32 = 8;
 
 fn run(args: &ArgMatches) -> Result<(), Error> {
     fn error(message: &str) -> ! {
@@ -39,6 +42,16 @@ fn run(args: &ArgMatches) -> Result<(), Error> {
         &simple_format
     };
 
+    let scale = value_t!(args.value_of("scale"), u32).unwrap_or_else(|e| match e.kind {
+        ErrorKind::ArgumentNotFound => DEFAULT_SCALE,
+        _ => error(&format!("{}", e)),
+    });
+    let preview_size =
+        value_t!(args.value_of("preview_size"), u32).unwrap_or_else(|e| match e.kind {
+            ErrorKind::ArgumentNotFound => DEFAULT_PREVIEW_SIZE,
+            _ => error(&format!("{}", e)),
+        });
+
     let selection = args.values_of("selection").and_then(|mut v| {
         v.next()
             .map_or(Some(Selection::Clipboard), |v| v.parse::<Selection>().ok())
@@ -46,12 +59,9 @@ fn run(args: &ArgMatches) -> Result<(), Error> {
     let use_selection = selection.is_some();
     let background = std::env::var("XCOLOR_FOREGROUND").is_err();
 
-    let use_preview = !args.is_present("no_preview");
-    let use_shape = std::env::var("XCOLOR_DISABLE_SHAPE").is_err();
-
     let mut in_parent = true;
 
-    let (conn, screen) = Connection::connect(None)?;
+    let (conn, screen) = Connection::connect_with_xlib_display()?;
 
     {
         let screen = conn
@@ -61,15 +71,7 @@ fn run(args: &ArgMatches) -> Result<(), Error> {
             .ok_or_else(|| err_msg("Could not find screen"))?;
         let root = screen.root();
 
-        let point = if use_preview {
-            let mut preview = Preview::create(&conn, &screen, use_shape)?;
-            wait_for_location(&conn, &screen, |event| preview.handle_event(event))?
-        } else {
-            wait_for_location(&conn, &screen, |_| Ok(true))?
-        };
-
-        if let Some(point) = point {
-            let color = window_color_at_point(&conn, root, point)?;
+        if let Some(color) = wait_for_location(&conn, &screen, preview_size, scale)? {
             let output = formatter.format(color);
 
             if use_selection {

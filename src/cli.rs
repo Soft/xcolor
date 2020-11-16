@@ -36,9 +36,19 @@ pub fn get_cli() -> App<'static, 'static> {
                 .help("Output to selection (defaults to clipboard)"),
         )
         .arg(
-            Arg::with_name("no_preview")
-                .short("n")
-                .long("no-preview")
-                .help("Disable preview popup"),
+            Arg::with_name("scale")
+                .short("S")
+                .long("scale")
+                .takes_value(true)
+                .value_name("SCALE")
+                .help("Scale of magnification (defaults to 8)"),
+        )
+        .arg(
+            Arg::with_name("preview_size")
+                .short("P")
+                .long("preview-size")
+                .takes_value(true)
+                .value_name("PREVIEW_SIZE")
+                .help("Size of preview, must be odd (defaults to 255)"),
         )
 }

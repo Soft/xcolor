@@ -1,8 +1,11 @@
 [package]
 name = "xcolor"
-version = "0.4.1"
+version = "0.5.0"
 description = "Lightweight color picker for X11"
-authors = ["Samuel Laurén <samuel.lauren@iki.fi>"]
+authors = [
+  "Samuel Laurén <samuel.lauren@iki.fi>",
+  "Callum Osmotherly <acheronfail@gmail.com>"
+]
 license = "MIT"
 readme = "README.md"
 categories = ["command-line-utilities"]
@@ -21,9 +24,13 @@ nix = "0.17"
 libc = "0.2"
 lazy_static = "1.4"
 
+[dependencies.x11]
+version = "2.3"
+features = ["xlib", "xcursor"]
+
 [dependencies.xcb]
 version = "0.9"
-features = ["shape"]
+features = ["xlib_xcb"]
 
 [build-dependencies]
 clap = "2.33"

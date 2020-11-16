@@ -56,25 +56,28 @@ makepkg -isr
 ## Usage
 
 Simply invoke the `xcolor` command to select a color. The selected color will be
-printed to the standard output. 
+printed to the standard output.
 
 ``` text
-xcolor 0.4.0
-Samuel Laurén <samuel.lauren@iki.fi>
+xcolor 0.5.0
+Samuel Laurén <samuel.lauren@iki.fi>:Callum Osmotherly <acheronfail@gmail.com>
 Lightweight color picker for X11
 
 USAGE:
-    xcolor [FLAGS] [OPTIONS]
+    xcolor [OPTIONS]
 
 FLAGS:
-    -h, --help          Prints help information
-    -n, --no-preview    Disable preview popup
-    -V, --version       Prints version information
+    -h, --help       Prints help information
+    -V, --version    Prints version information
 
 OPTIONS:
-    -c, --custom <FORMAT>          Custom output format
-    -f, --format <NAME>            Output format (defaults to hex) [possible values: hex, HEX, hex!, HEX!, plain, rgb]
-    -s, --selection <SELECTION>    Output to selection (defaults to clipboard) [possible values: clipboard, primary, secondary]
+    -c, --custom <FORMAT>                Custom output format
+    -f, --format <NAME>                  Output format (defaults to hex) [possible values: hex, HEX, hex!, HEX!, plain,
+                                         rgb]
+    -P, --preview-size <PREVIEW_SIZE>    Size of preview, must be odd (defaults to 255)
+    -S, --scale <SCALE>                  Scale of magnification (defaults to 8)
+    -s, --selection <SELECTION>          Output to selection (defaults to clipboard) [possible values: primary,
+                                         secondary, clipboard]
 ```
 
 ## Saving to Selection
@@ -90,13 +93,12 @@ environment variable.
 
 ## Color Preview
 
-By default, the color currently under the cursor is displayed in a small preview
-window that follows the mouse. This behavior can be disabled by passing the `-n`
-flag.
+The `-S` or `--scale` flag controls the upscaling (or zoom) of the preview. By
+default it is set to `8` which indicates an 8x zoom level.
 
-When supported by the display server, the preview window will be round-shaped.
-This behavior can be disabled by defining `XCOLOR_DISABLE_SHAPE` environment
-variable.
+The `-P` or `--preview-size` flag controls the size of the preview in pixels. So
+that the preview always has a center pixel this number must be odd, if an even
+number is passed then it will be changed to the next odd number.
 
 ## Formatting
 
