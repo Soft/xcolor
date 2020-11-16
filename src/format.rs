@@ -3,7 +3,7 @@ use nom::*;
 use std::str::FromStr;
 use std::{fmt, iter};
 
-use crate::color::RGB;
+use crate::color::ARGB;
 
 pub struct FormatString(Vec<FormatPart>);
 
@@ -84,11 +84,11 @@ impl FromStr for FormatString {
 }
 
 pub trait FormatColor {
-    fn format(&self, color: RGB) -> String;
+    fn format(&self, color: ARGB) -> String;
 }
 
 impl Channel {
-    fn extract(&self, color: RGB) -> u8 {
+    fn extract(&self, color: ARGB) -> u8 {
         match self {
             Channel::R => color.r,
             Channel::G => color.g,
@@ -113,7 +113,7 @@ impl NumberFormat {
 }
 
 impl FormatColor for FormatPart {
-    fn format(&self, color: RGB) -> String {
+    fn format(&self, color: ARGB) -> String {
         match self {
             FormatPart::Literal(s) => s.clone(),
             FormatPart::Expansion {
@@ -138,7 +138,7 @@ impl FormatColor for FormatPart {
 }
 
 impl FormatColor for FormatString {
-    fn format(&self, color: RGB) -> String {
+    fn format(&self, color: ARGB) -> String {
         self.0.iter().map(|part| part.format(color)).collect()
     }
 }
@@ -174,7 +174,7 @@ impl FromStr for Format {
 }
 
 impl FormatColor for Format {
-    fn format(&self, color: RGB) -> String {
+    fn format(&self, color: ARGB) -> String {
         match self {
             Format::LowercaseHex(comp) => {
                 if *comp == HexCompaction::Compact && color.is_compactable() {
@@ -252,23 +252,26 @@ fn test_format_color() {
 #[test]
 fn test_examples_from_readme() {
     let fmt: FormatString = "#%{02hr}%{02hg}%{02hb}".parse().unwrap();
-    assert_eq!(fmt.format(RGB::new(255, 0, 255)), "#ff00ff");
+    assert_eq!(fmt.format(ARGB::new(0xff, 255, 0, 255)), "#ff00ff");
 
     let fmt: FormatString = "#%{02Hr}%{02Hg}%{02Hb}".parse().unwrap();
-    assert_eq!(fmt.format(RGB::new(0, 255, 0)), "#00FF00");
+    assert_eq!(fmt.format(ARGB::new(0xff, 0, 255, 0)), "#00FF00");
 
     let fmt: FormatString = "rgb(%{r}, %{g}, %{b})".parse().unwrap();
-    assert_eq!(fmt.format(RGB::new(255, 255, 255)), "rgb(255, 255, 255)");
+    assert_eq!(
+        fmt.format(ARGB::new(0xff, 255, 255, 255)),
+        "rgb(255, 255, 255)"
+    );
 
     let fmt: FormatString = "%{r};%{g};%{b}".parse().unwrap();
-    assert_eq!(fmt.format(RGB::new(0, 0, 0)), "0;0;0");
+    assert_eq!(fmt.format(ARGB::new(0xff, 0, 0, 0)), "0;0;0");
 
     let fmt: FormatString = "%{r}, %{g}, %{b}".parse().unwrap();
-    assert_eq!(fmt.format(RGB::new(0, 0, 0)), "0, 0, 0");
+    assert_eq!(fmt.format(ARGB::new(0xff, 0, 0, 0)), "0, 0, 0");
 
     let fmt: FormatString = "Green: %{-4g}".parse().unwrap();
-    assert_eq!(fmt.format(RGB::new(0, 7, 0)), "Green: ---7");
+    assert_eq!(fmt.format(ARGB::new(0xff, 0, 7, 0)), "Green: ---7");
 
     let fmt: FormatString = "%{016Br}".parse().unwrap();
-    assert_eq!(fmt.format(RGB::new(3, 0, 0)), "0000000000000011");
+    assert_eq!(fmt.format(ARGB::new(0xff, 3, 0, 0)), "0000000000000011");
 }
