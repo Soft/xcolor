@@ -8,8 +8,8 @@ mod pixel;
 mod selection;
 mod util;
 
+use anyhow::{anyhow, Result};
 use clap::{value_t, ArgMatches, ErrorKind};
-use failure::{err_msg, Error};
 use nix::unistd::ForkResult;
 use xcb::base::Connection;
 
@@ -21,7 +21,7 @@ use crate::selection::{into_daemon, set_selection, Selection};
 const DEFAULT_PREVIEW_SIZE: u32 = 256 - 1;
 const DEFAULT_SCALE: u32 = 8;
 
-fn run(args: &ArgMatches) -> Result<(), Error> {
+fn run(args: &ArgMatches) -> Result<()> {
     fn error(message: &str) -> ! {
         clap::Error::with_description(message, clap::ErrorKind::InvalidValue).exit()
     }
@@ -68,7 +68,7 @@ fn run(args: &ArgMatches) -> Result<(), Error> {
             .get_setup()
             .roots()
             .nth(screen as usize)
-            .ok_or_else(|| err_msg("Could not find screen"))?;
+            .ok_or_else(|| anyhow!("Could not find screen"))?;
         let root = screen.root();
 
         if let Some(color) = wait_for_location(&conn, &screen, preview_size, scale)? {

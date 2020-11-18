@@ -1,4 +1,4 @@
-use failure::{err_msg, Error};
+use anyhow::{anyhow, Result};
 use x11::xcursor::{XcursorImageCreate, XcursorImageDestroy, XcursorImageLoadCursor};
 use xcb::base as xbase;
 use xcb::base::Connection;
@@ -14,7 +14,7 @@ const SELECTION_BUTTON: xproto::Button = 1;
 const GRAB_MASK: u16 = (xproto::EVENT_MASK_BUTTON_PRESS | xproto::EVENT_MASK_POINTER_MOTION) as u16;
 
 // Exclusively grabs the pointer so we get all its events
-fn grab_pointer(conn: &Connection, root: u32, cursor: u32) -> Result<(), Error> {
+fn grab_pointer(conn: &Connection, root: u32, cursor: u32) -> Result<()> {
     let reply = xproto::grab_pointer(
         conn,
         false,
@@ -29,14 +29,14 @@ fn grab_pointer(conn: &Connection, root: u32, cursor: u32) -> Result<(), Error> 
     .get_reply()?;
 
     if reply.status() != xproto::GRAB_STATUS_SUCCESS as u8 {
-        return Err(err_msg("Could not grab pointer"));
+        return Err(anyhow!("Could not grab pointer"));
     }
 
     Ok(())
 }
 
 // Updates the cursor for an _already grabbed pointer_
-fn update_cursor(conn: &Connection, cursor: u32) -> Result<(), Error> {
+fn update_cursor(conn: &Connection, cursor: u32) -> Result<()> {
     xproto::change_active_pointer_grab_checked(conn, cursor, xbase::CURRENT_TIME, GRAB_MASK)
         .request_check()?;
 
@@ -48,7 +48,7 @@ fn create_new_cursor(
     conn: &Connection,
     screenshot_pixels: &PixelArray<ARGB>,
     preview_width: u32,
-) -> Result<u32, Error> {
+) -> Result<u32> {
     Ok(unsafe {
         let mut cursor_image = XcursorImageCreate(preview_width as i32, preview_width as i32);
 
@@ -83,7 +83,7 @@ fn get_window_rect_around_pointer(
     (pointer_x, pointer_y): (i16, i16),
     preview_width: u32,
     scale: u32,
-) -> Result<(u16, Vec<ARGB>), Error> {
+) -> Result<(u16, Vec<ARGB>)> {
     let root = screen.root();
     let root_width = screen.width_in_pixels() as isize;
     let root_height = screen.height_in_pixels() as isize;
@@ -139,7 +139,7 @@ pub fn wait_for_location(
     screen: &xproto::Screen,
     preview_width: u32,
     scale: u32,
-) -> Result<Option<ARGB>, Error> {
+) -> Result<Option<ARGB>> {
     let root = screen.root();
     let preview_width = preview_width.ensure_odd();
 

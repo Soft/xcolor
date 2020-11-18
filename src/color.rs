@@ -1,4 +1,4 @@
-use failure::{err_msg, Error};
+use anyhow::{anyhow, Result};
 use std;
 use xcb::xproto;
 use xcb::Connection;
@@ -87,7 +87,7 @@ pub fn window_rect(
     conn: &Connection,
     window: xproto::Window,
     (x, y, width, height): (i16, i16, u16, u16),
-) -> Result<Vec<ARGB>, Error> {
+) -> Result<Vec<ARGB>> {
     let reply = xproto::get_image(
         conn,
         xproto::IMAGE_FORMAT_Z_PIXMAP as u8,
@@ -102,7 +102,7 @@ pub fn window_rect(
 
     if reply.depth() != 24 {
         // TODO: Figure out what to do with these
-        return Err(err_msg("Unsupported color depth"));
+        return Err(anyhow!("Unsupported color depth"));
     }
 
     let data = reply.data();

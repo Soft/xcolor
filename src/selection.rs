@@ -1,4 +1,4 @@
-use failure::{err_msg, Error};
+use anyhow::{anyhow, Error, Result};
 use libc;
 use nix::unistd::{self, fork, ForkResult};
 use std::fs;
@@ -10,7 +10,7 @@ use xcb::xproto;
 
 use crate::atoms;
 
-pub fn into_daemon() -> Result<ForkResult, Error> {
+pub fn into_daemon() -> Result<ForkResult> {
     match fork()? {
         parent @ ForkResult::Parent { .. } => Ok(parent),
         child @ ForkResult::Child => {
@@ -45,13 +45,13 @@ impl FromStr for Selection {
             "primary" => Ok(Selection::Primary),
             "secondary" => Ok(Selection::Secondary),
             "clipboard" => Ok(Selection::Clipboard),
-            _ => Err(err_msg("Invalid selection")),
+            _ => Err(anyhow!("Invalid selection")),
         }
     }
 }
 
 impl Selection {
-    fn to_atom(&self, conn: &Connection) -> Result<xproto::Atom, Error> {
+    fn to_atom(&self, conn: &Connection) -> Result<xproto::Atom> {
         Ok(match *self {
             Selection::Primary => atoms::get(conn, "PRIMARY")?,
             Selection::Secondary => atoms::get(conn, "SECONDARY")?,
@@ -74,7 +74,7 @@ pub fn set_selection(
     root: xproto::Window,
     selection: &Selection,
     string: &str,
-) -> Result<(), Error> {
+) -> Result<()> {
     let selection = selection.to_atom(conn)?;
     let utf8_string = atoms::get(conn, "UTF8_STRING")?;
     let targets = atoms::get(conn, "TARGETS")?;
@@ -105,7 +105,7 @@ pub fn set_selection(
         .owner()
         != window
     {
-        return Err(err_msg("Could not take selection ownership"));
+        return Err(anyhow!("Could not take selection ownership"));
     }
 
     loop {
