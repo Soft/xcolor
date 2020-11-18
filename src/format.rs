@@ -1,12 +1,12 @@
+use std::num::ParseIntError;
 use std::str::FromStr;
 use std::{fmt, iter};
-use std::num::ParseIntError;
 
 use nom::branch::alt;
 use nom::bytes::complete::{tag, take_till1};
 use nom::character::complete::{anychar, digit1};
 use nom::combinator::{all_consuming, complete, map, map_res, opt, value};
-use nom::error::{ParseError, FromExternalError};
+use nom::error::{FromExternalError, ParseError};
 use nom::multi::many0;
 use nom::sequence::{preceded, terminated, tuple};
 use nom::IResult;

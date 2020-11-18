@@ -60,8 +60,18 @@ fn create_new_cursor(
         let mut cursor_pixels =
             PixelArrayMut::from_raw_parts((*cursor_image).pixels, preview_width as usize);
 
+        // find out how large our pixels should be in the picker - this must be an odd number (so
+        // there's a center pixel) and it must be slightly higher than the ratio between the
+        // cursor and the screenshot (to account for integer division so no out of bounds accesses
+        // occur when upscaling the image in `draw_magnifying_glass`)
+        let mut pixel_size = cursor_pixels.width() / screenshot_pixels.width();
+        if pixel_size % 2 == 0 {
+            pixel_size += 1;
+        } else {
+            pixel_size += 2;
+        }
+
         // draw our custom image
-        let pixel_size = (cursor_pixels.width() / screenshot_pixels.width()).ensure_odd();
         draw_magnifying_glass(&mut cursor_pixels, screenshot_pixels, pixel_size);
 
         // convert our XcursorImage into a cursor
