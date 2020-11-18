@@ -1,4 +1,4 @@
-use failure::{err_msg, Error};
+use anyhow::{anyhow, Error, Result};
 use nom::*;
 use std::str::FromStr;
 use std::{fmt, iter};
@@ -160,7 +160,7 @@ pub enum Format {
 
 impl FromStr for Format {
     type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self> {
         match s {
             "hex" => Ok(Format::LowercaseHex(HexCompaction::Full)),
             "HEX" => Ok(Format::UppercaseHex(HexCompaction::Full)),
@@ -168,7 +168,7 @@ impl FromStr for Format {
             "HEX!" => Ok(Format::UppercaseHex(HexCompaction::Compact)),
             "plain" => Ok(Format::Plain),
             "rgb" => Ok(Format::RGB),
-            _ => Err(err_msg("Invalid format")),
+            _ => Err(anyhow!("Invalid format")),
         }
     }
 }

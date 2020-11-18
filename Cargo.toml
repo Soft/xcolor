@@ -17,7 +17,7 @@ exclude = ["docker/*", "_config.yml"]
 edition = "2018"
 
 [dependencies]
-failure = "0.1"
+anyhow = "1.0"
 nom = "3.2"
 clap = "2.33"
 nix = "0.17"

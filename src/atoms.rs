@@ -1,4 +1,4 @@
-use failure::{err_msg, Error};
+use anyhow::{anyhow, Result};
 use lazy_static::*;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
@@ -10,10 +10,10 @@ lazy_static! {
     static ref ATOM_CACHE: Mutex<HashMap<&'static str, xproto::Atom>> = Mutex::new(HashMap::new());
 }
 
-pub fn get(conn: &Connection, name: &'static str) -> Result<xproto::Atom, Error> {
+pub fn get(conn: &Connection, name: &'static str) -> Result<xproto::Atom> {
     let mut map = ATOM_CACHE
         .lock()
-        .map_err(|_| err_msg("Failed to access atom cache"))?;
+        .map_err(|_| anyhow!("Failed to access atom cache"))?;
     match map.entry(name) {
         Entry::Occupied(entry) => Ok(*entry.get()),
         Entry::Vacant(entry) => {
