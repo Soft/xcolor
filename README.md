@@ -4,7 +4,6 @@
 [![Latest Version](https://img.shields.io/crates/v/xcolor.svg)](https://crates.io/crates/xcolor)
 [![GitHub release](https://img.shields.io/github/release/Soft/xcolor.svg)](https://github.com/Soft/xcolor/releases)
 [![dependency status](https://deps.rs/repo/github/soft/xcolor/status.svg)](https://deps.rs/repo/github/soft/xcolor)
-[![Rust Documentation](https://img.shields.io/badge/api-rustdoc-blue.svg)](https://docs.rs/crate/xcolor)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 <img align="right" src="https://raw.githubusercontent.com/Soft/xcolor/master/extra/screenshot.png">
@@ -14,33 +13,30 @@ the screen to get their RGB representation.
 
 ## Installation
 
-### GitHub Release Binaries
-
-There are statically linked release binaries available on the [GitHub releases
-page](https://github.com/Soft/xcolor/releases). These binaries should work on
-most recent Linux systems without any additional dependencies or configuration.
-
 ### Using Cargo
 
-Alternatively, `xcolor` can be easily installed from the source using
+`xcolor` can be installed using
 [cargo](https://doc.rust-lang.org/stable/cargo/):
 
 ``` shell
 cargo install xcolor
 ```
 
-Building and running `xcolor` requires [xcb](https://xcb.freedesktop.org)
-libraries to be present. To get the latest development version of `xcolor`, you
-can direct cargo to install from the git repository:
+Building and running `xcolor` requires [xcb](https://xcb.freedesktop.org) and
+[Xlib](https://www.x.org/wiki/) libraries to be present.
+
+To get the latest development version of `xcolor`, you can direct cargo to
+install from the git repository:
 
 ``` shell
 cargo install --git 'https://github.com/Soft/xcolor.git'
 ```
 
-However, just downloading the application binary or installing with cargo will
-not install program’s man page. To also get the manual installed, invoke `make
-install` in the project directory. By default, the install script will place the
-files under `/usr/local/` hierarchy.
+Installing `xcolor` with cargo will not install its manual page or desktop file.
+To also install these additional files, invoke `make install` in the project
+directory. By default, the install script will place the files under
+`/usr/local/` hierarchy.
+
 
 ### Arch Linux
 
@@ -120,7 +116,7 @@ Color Module Level 3](https://www.w3.org/TR/2018/PR-css-color-3-20180315/#rgb-co
 If the color is not expressible in three-letter form, the regular six-letter
 form will be used.
 
-## Custom Formatting
+## Custom Formats
 
 The `-f` switch provides quick access to some commonly used formatting options.
 However, if custom output formatting is desired, this can be achieved using the
