@@ -153,14 +153,22 @@ pub fn wait_for_location(
     let root = screen.root();
     let preview_width = preview_width.ensure_odd();
 
-    let pointer = xproto::query_pointer(conn, root).get_reply()?;
-    let pointer_pos = (pointer.root_x(), pointer.root_y());
-    let (width, initial_rect) =
-        get_window_rect_around_pointer(conn, screen, pointer_pos, preview_width, scale)?;
+    macro_rules! create_new_cursor {
+        // create a cursor at the given coordinates
+        ($x: expr, $y: expr) => {{
+            let (width, pixels) = get_window_rect_around_pointer(conn, screen, ($x, $y), preview_width, scale)?;
+            let pixels = PixelArray::new(&pixels[..], width.into());
+            create_new_cursor(conn, &pixels, preview_width)?
+        }};
+        // create a cursor at the coordinates of the pointer
+        () => {{
+            let pointer = xproto::query_pointer(conn, root).get_reply()?;
+            create_new_cursor!(pointer.root_x(), pointer.root_y())
+        }};
+    }
 
-    let screenshot_pixels = PixelArray::new(&initial_rect[..], width.into());
-    let cursor_image = create_new_cursor(conn, &screenshot_pixels, preview_width)?;
-    grab_pointer(conn, root, cursor_image)?;
+    // grab the cursor to listen to all of its events
+    grab_pointer(conn, root, create_new_cursor!())?;
 
     let result = loop {
         let event = conn.wait_for_event();
@@ -177,18 +185,7 @@ pub fn wait_for_location(
                 }
                 xproto::MOTION_NOTIFY => {
                     let event: &xproto::MotionNotifyEvent = unsafe { xbase::cast_event(&event) };
-                    let pointer_pos = (event.root_x(), event.root_y());
-                    let (width, pixels) = get_window_rect_around_pointer(
-                        conn,
-                        screen,
-                        pointer_pos,
-                        preview_width,
-                        scale,
-                    )?;
-
-                    let screenshot_pixels = PixelArray::new(&pixels[..], width.into());
-                    let cursor_image = create_new_cursor(conn, &screenshot_pixels, preview_width)?;
-                    update_cursor(conn, cursor_image)?;
+                    update_cursor(conn, create_new_cursor!(event.root_x(), event.root_y()))?;
                 }
                 _ => {}
             }
