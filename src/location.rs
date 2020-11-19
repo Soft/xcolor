@@ -6,11 +6,13 @@ use xcb::xproto;
 
 use crate::color::{self, ARGB};
 use crate::draw::draw_magnifying_glass;
-use crate::pixel::{PixelArray, PixelArrayMut};
+use crate::pixel::PixelSquare;
 use crate::util::EnsureOdd;
 
 // Left mouse button
 const SELECTION_BUTTON: xproto::Button = 1;
+// Right mouse button
+const MAGNIFY_BUTTON: xproto::Button = 3;
 const GRAB_MASK: u16 = (xproto::EVENT_MASK_BUTTON_PRESS | xproto::EVENT_MASK_POINTER_MOTION) as u16;
 
 // Exclusively grabs the pointer so we get all its events
@@ -46,7 +48,7 @@ fn update_cursor(conn: &Connection, cursor: u32) -> Result<()> {
 // Creates a new `XcursorImage`, draws the picker into it and loads it, returning the id for a `Cursor`
 fn create_new_cursor(
     conn: &Connection,
-    screenshot_pixels: &PixelArray<ARGB>,
+    screenshot_pixels: &PixelSquare<&[ARGB]>,
     preview_width: u32,
 ) -> Result<u32> {
     Ok(unsafe {
@@ -58,7 +60,7 @@ fn create_new_cursor(
 
         // get pixel data as a mutable Rust slice
         let mut cursor_pixels =
-            PixelArrayMut::from_raw_parts((*cursor_image).pixels, preview_width as usize);
+            PixelSquare::from_raw_parts((*cursor_image).pixels, preview_width as usize);
 
         // find out how large our pixels should be in the picker - this must be an odd number (so
         // there's a center pixel) and it must be slightly higher than the ratio between the
@@ -153,12 +155,21 @@ pub fn wait_for_location(
     let root = screen.root();
     let preview_width = preview_width.ensure_odd();
 
+    let mut curr_scale = scale;
+    let mut curr_preview_width = preview_width;
+
     macro_rules! create_new_cursor {
         // create a cursor at the given coordinates
         ($x: expr, $y: expr) => {{
-            let (width, pixels) = get_window_rect_around_pointer(conn, screen, ($x, $y), preview_width, scale)?;
-            let pixels = PixelArray::new(&pixels[..], width.into());
-            create_new_cursor(conn, &pixels, preview_width)?
+            let (w, p) = get_window_rect_around_pointer(
+                conn,
+                screen,
+                ($x, $y),
+                curr_preview_width,
+                curr_scale,
+            )?;
+            let pixels = PixelSquare::new(&p[..], w.into());
+            create_new_cursor(conn, &pixels, curr_preview_width)?
         }};
         // create a cursor at the coordinates of the pointer
         () => {{
@@ -176,11 +187,38 @@ pub fn wait_for_location(
             match event.response_type() {
                 xproto::BUTTON_PRESS => {
                     let event: &xproto::ButtonPressEvent = unsafe { xbase::cast_event(&event) };
-                    if event.detail() == SELECTION_BUTTON {
-                        let pixels =
-                            color::window_rect(conn, root, (event.root_x(), event.root_y(), 1, 1))?;
+                    match event.detail() {
+                        SELECTION_BUTTON => {
+                            let pixels = color::window_rect(
+                                conn,
+                                root,
+                                (event.root_x(), event.root_y(), 1, 1),
+                            )?;
 
-                        break Some(pixels[0]);
+                            break Some(pixels[0]);
+                        }
+
+                        MAGNIFY_BUTTON => {
+                            // Double the scale
+                            if curr_scale == scale {
+                                curr_scale = curr_scale * 2;
+                            } else {
+                                curr_scale = scale;
+                            }
+
+                            // Slightly increase the preview size
+                            if curr_preview_width == preview_width {
+                                curr_preview_width = (preview_width + preview_width / 2).ensure_odd();
+                            } else {
+                                curr_preview_width = preview_width;
+                            }
+
+                            update_cursor(
+                                conn,
+                                create_new_cursor!(event.root_x(), event.root_y()),
+                            )?;
+                        }
+                        _ => {}
                     }
                 }
                 xproto::MOTION_NOTIFY => {
