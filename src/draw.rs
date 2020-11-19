@@ -1,5 +1,5 @@
 use crate::color::ARGB;
-use crate::pixel::{PixelArray, PixelArrayMut};
+use crate::pixel::PixelSquare;
 
 #[inline]
 fn is_inside_circle(x: isize, y: isize, r: isize) -> bool {
@@ -16,8 +16,8 @@ fn border_color(color: ARGB) -> u32 {
 }
 
 pub fn draw_magnifying_glass(
-    cursor: &mut PixelArrayMut<u32>,
-    screenshot: &PixelArray<ARGB>,
+    cursor: &mut PixelSquare<&mut [u32]>,
+    screenshot: &PixelSquare<&[ARGB]>,
     pixel_size: usize,
 ) {
     assert!(pixel_size % 2 != 0, "pixel_size must be odd");
