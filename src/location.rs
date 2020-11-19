@@ -46,7 +46,7 @@ fn update_cursor(conn: &Connection, cursor: u32) -> Result<()> {
 }
 
 // Creates a new `XcursorImage`, draws the picker into it and loads it, returning the id for a `Cursor`
-fn create_new_cursor(
+fn create_new_xcursor(
     conn: &Connection,
     screenshot_pixels: &PixelSquare<&[ARGB]>,
     preview_width: u32,
@@ -146,6 +146,27 @@ fn get_window_rect_around_pointer(
     Ok((size as u16, pixels))
 }
 
+fn create_new_cursor(
+    conn: &Connection,
+    screen: &xproto::Screen,
+    preview_width: u32,
+    scale: u32,
+    point: Option<(i16, i16)>,
+) -> Result<u32> {
+    let point = match point {
+        Some(point) => point,
+        None => {
+            let root = screen.root();
+            let pointer = xproto::query_pointer(conn, root).get_reply()?;
+            (pointer.root_x(), pointer.root_y())
+        }
+    };
+
+    let (w, p) = get_window_rect_around_pointer(conn, screen, point, preview_width, scale)?;
+    let pixels = PixelSquare::new(&p[..], w.into());
+    create_new_xcursor(conn, &pixels, preview_width)
+}
+
 pub fn wait_for_location(
     conn: &Connection,
     screen: &xproto::Screen,
@@ -158,28 +179,9 @@ pub fn wait_for_location(
     let mut curr_scale = scale;
     let mut curr_preview_width = preview_width;
 
-    macro_rules! create_new_cursor {
-        // create a cursor at the given coordinates
-        ($x: expr, $y: expr) => {{
-            let (w, p) = get_window_rect_around_pointer(
-                conn,
-                screen,
-                ($x, $y),
-                curr_preview_width,
-                curr_scale,
-            )?;
-            let pixels = PixelSquare::new(&p[..], w.into());
-            create_new_cursor(conn, &pixels, curr_preview_width)?
-        }};
-        // create a cursor at the coordinates of the pointer
-        () => {{
-            let pointer = xproto::query_pointer(conn, root).get_reply()?;
-            create_new_cursor!(pointer.root_x(), pointer.root_y())
-        }};
-    }
-
     // grab the cursor to listen to all of its events
-    grab_pointer(conn, root, create_new_cursor!())?;
+    let mut cursor = create_new_cursor(conn, screen, curr_preview_width, curr_scale, None)?;
+    grab_pointer(conn, root, cursor)?;
 
     let result = loop {
         let event = conn.wait_for_event();
@@ -208,22 +210,40 @@ pub fn wait_for_location(
 
                             // Slightly increase the preview size
                             if curr_preview_width == preview_width {
-                                curr_preview_width = (preview_width + preview_width / 2).ensure_odd();
+                                curr_preview_width =
+                                    (preview_width + preview_width / 2).ensure_odd();
                             } else {
                                 curr_preview_width = preview_width;
                             }
 
-                            update_cursor(
+                            let new_cursor = create_new_cursor(
                                 conn,
-                                create_new_cursor!(event.root_x(), event.root_y()),
+                                screen,
+                                curr_preview_width,
+                                curr_scale,
+                                Some((event.root_x(), event.root_y())),
                             )?;
+                            update_cursor(conn, new_cursor)?;
+
+                            xproto::free_cursor(conn, cursor);
+                            cursor = new_cursor;
                         }
                         _ => {}
                     }
                 }
                 xproto::MOTION_NOTIFY => {
                     let event: &xproto::MotionNotifyEvent = unsafe { xbase::cast_event(&event) };
-                    update_cursor(conn, create_new_cursor!(event.root_x(), event.root_y()))?;
+                    let new_cursor = create_new_cursor(
+                        conn,
+                        screen,
+                        curr_preview_width,
+                        curr_scale,
+                        Some((event.root_x(), event.root_y())),
+                    )?;
+                    update_cursor(conn, new_cursor)?;
+
+                    xproto::free_cursor(conn, cursor);
+                    cursor = new_cursor;
                 }
                 _ => {}
             }
