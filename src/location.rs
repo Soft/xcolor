@@ -253,6 +253,7 @@ pub fn wait_for_location(
     };
 
     xproto::ungrab_pointer(conn, xbase::CURRENT_TIME);
+    xproto::free_cursor(conn, cursor);
     conn.flush();
 
     Ok(result)
