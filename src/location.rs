@@ -11,8 +11,6 @@ use crate::util::EnsureOdd;
 
 // Left mouse button
 const SELECTION_BUTTON: xproto::Button = 1;
-// Right mouse button
-const MAGNIFY_BUTTON: xproto::Button = 3;
 const GRAB_MASK: u16 = (xproto::EVENT_MASK_BUTTON_PRESS | xproto::EVENT_MASK_POINTER_MOTION) as u16;
 
 // Exclusively grabs the pointer so we get all its events
@@ -176,11 +174,8 @@ pub fn wait_for_location(
     let root = screen.root();
     let preview_width = preview_width.ensure_odd();
 
-    let mut curr_scale = scale;
-    let mut curr_preview_width = preview_width;
-
     // grab the cursor to listen to all of its events
-    let mut cursor = create_new_cursor(conn, screen, curr_preview_width, curr_scale, None)?;
+    let mut cursor = create_new_cursor(conn, screen, preview_width, scale, None)?;
     grab_pointer(conn, root, cursor)?;
 
     let result = loop {
@@ -199,35 +194,6 @@ pub fn wait_for_location(
 
                             break Some(pixels[0]);
                         }
-
-                        MAGNIFY_BUTTON => {
-                            // Double the scale
-                            if curr_scale == scale {
-                                curr_scale = curr_scale * 2;
-                            } else {
-                                curr_scale = scale;
-                            }
-
-                            // Slightly increase the preview size
-                            if curr_preview_width == preview_width {
-                                curr_preview_width =
-                                    (preview_width + preview_width / 2).ensure_odd();
-                            } else {
-                                curr_preview_width = preview_width;
-                            }
-
-                            let new_cursor = create_new_cursor(
-                                conn,
-                                screen,
-                                curr_preview_width,
-                                curr_scale,
-                                Some((event.root_x(), event.root_y())),
-                            )?;
-                            update_cursor(conn, new_cursor)?;
-
-                            xproto::free_cursor(conn, cursor);
-                            cursor = new_cursor;
-                        }
                         _ => {}
                     }
                 }
@@ -236,8 +202,8 @@ pub fn wait_for_location(
                     let new_cursor = create_new_cursor(
                         conn,
                         screen,
-                        curr_preview_width,
-                        curr_scale,
+                        preview_width,
+                        scale,
                         Some((event.root_x(), event.root_y())),
                     )?;
                     update_cursor(conn, new_cursor)?;
