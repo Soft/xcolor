@@ -7,6 +7,7 @@ GenericName[se]=Färgväljare
 GenericName[fi]=Värinvalitsija
 GenericName[jp]=カラーピッカー
 Comment=Select colors visible anywhere on the screen to get their RGB representation
+Comment[de]=Wähle Farben an einer beliebigen Stelle auf dem Bildschirm aus, um ihre RGB-Darstellung zu erhalten
 Keywords=color;picker;select;design;
 TryExec=xcolor
 Exec=xcolor -s
