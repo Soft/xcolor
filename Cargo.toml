@@ -13,18 +13,18 @@ keywords = ["color", "utility", "color-picker", "x11"]
 homepage = "https://github.com/Soft/xcolor"
 repository = "https://github.com/Soft/xcolor"
 build = "build.rs"
-exclude = ["docker/*", "_config.yml"]
+exclude = ["_config.yml"]
 edition = "2018"
 
 [dependencies]
 anyhow = "1.0"
-nom = "6.0"
+nom = "6.2"
 clap = "2.33"
-nix = "0.17"
+nix = "0.22"
 lazy_static = "1.4"
 
 [dependencies.x11]
-version = "2.3"
+version = "2.18"
 features = ["xlib", "xcursor"]
 
 [dependencies.xcb]
