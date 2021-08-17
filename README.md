@@ -6,7 +6,7 @@
 [![dependency status](https://deps.rs/repo/github/soft/xcolor/status.svg)](https://deps.rs/repo/github/soft/xcolor)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-<img align="right" src="https://raw.githubusercontent.com/Soft/xcolor/master/extra/screenshot.png">
+<img align="right" width="250" src="https://raw.githubusercontent.com/Soft/xcolor/master/extra/screenshot.png">
 
 Lightweight color picker for X11. Use mouse to select colors visible anywhere on
 the screen to get their RGB representation.
