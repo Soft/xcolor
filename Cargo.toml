@@ -1,6 +1,6 @@
 [package]
 name = "xcolor"
-version = "0.5.0"
+version = "0.5.1"
 description = "Lightweight color picker for X11"
 authors = [
   "Samuel Laurén <samuel.lauren@iki.fi>",
@@ -17,14 +17,14 @@ exclude = ["_config.yml"]
 edition = "2018"
 
 [dependencies]
-anyhow = "1.0"
-nom = "6.2"
-clap = "2.33"
+anyhow = "1"
+nom = "7"
+clap = "2"
 nix = "0.22"
-lazy_static = "1.4"
+lazy_static = "1"
 
 [dependencies.x11]
-version = "2.18"
+version = "2"
 features = ["xlib", "xcursor"]
 
 [dependencies.xcb]
@@ -32,7 +32,7 @@ version = "0.9"
 features = ["xlib_xcb"]
 
 [build-dependencies]
-clap = "2.33"
+clap = "2"
 
 [profile.release]
 lto = true
