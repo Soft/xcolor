@@ -37,16 +37,12 @@ To also install these additional files, invoke `make install` in the project
 directory. By default, the install script will place the files under
 `/usr/local/` hierarchy.
 
-
 ### Arch Linux
 
-`xcolor` is available in the [Arch User Repository](https://aur.archlinux.org/packages/xcolor/).
-To install `xcolor` from AUR:
+`xcolor` is available in the Arch Linux [community repository](https://archlinux.org/packages/community/x86_64/xcolor/). To install it with [pacman](https://wiki.archlinux.org/title/Pacman):
 
 ``` shell
-git clone https://aur.archlinux.org/xcolor.git
-cd xcolor
-makepkg -isr
+pacman -S xcolor
 ```
 
 ## Usage
