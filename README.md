@@ -49,6 +49,7 @@ pacman -S xcolor
 
 Simply invoke the `xcolor` command to select a color. The selected color will be
 printed to the standard output.
+You can cancel the color picker by clicking right click.
 
 ``` text
 xcolor 0.5.0
