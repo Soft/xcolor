@@ -96,7 +96,7 @@ number is passed then it will be changed to the next odd number.
 
 By default, the color values will be printed in lowercase hexadecimal format.
 The output format can be changed using the `-f NAME` switch. Supported format
-names are listed bellow:
+names are listed below:
 
 | Format Specifier | Description                               | Example               | Custom Format Equivalent |
 | ---------------- | ----------------------------------------- | --------------------- | ------------------------ |
