@@ -52,4 +52,13 @@ pub fn get_cli() -> App<'static, 'static> {
                 .value_name("PREVIEW_SIZE")
                 .help("Size of preview, must be odd (defaults to 255)"),
         )
+        .arg(
+            Arg::with_name("position")
+                .short("p")
+                .long("position")
+                .required(false)
+                .takes_value(false)
+                // .value_name("POSITION")
+                .help("Should xcolor also print out the position of the pointer"),
+        )
 }
