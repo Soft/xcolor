@@ -45,6 +45,17 @@ directory. By default, the install script will place the files under
 pacman -S xcolor
 ```
 
+### Gentoo Linux
+
+Available in [dm9pZCAq overlay](https://github.com/gentoo-mirror/dm9pZCAq)
+
+``` shell
+eselect repository enable dm9pZCAq
+emerge --sync dm9pZCAq
+emerge x11-misc/xcolor
+```
+
+
 ## Usage
 
 Simply invoke the `xcolor` command to select a color. The selected color will be
