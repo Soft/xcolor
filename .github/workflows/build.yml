@@ -1,0 +1,42 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+
+      - name: Cache cargo directory
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install build-essential libx11-dev libx11-xcb-dev libxcursor-dev
+
+      - name: Build binary
+        run: cargo build --release
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-x86-binary
+          path: target/release/xcolor
