@@ -18,6 +18,7 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1"
+atty = "0.2"
 nom = "7"
 clap = "2"
 nix = "0.22"

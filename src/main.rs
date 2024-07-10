@@ -9,6 +9,7 @@ mod selection;
 mod util;
 
 use anyhow::{anyhow, Result};
+use atty::Stream;
 use clap::{value_t, ArgMatches, ErrorKind};
 use nix::unistd::ForkResult;
 use xcb::base::Connection;
@@ -86,7 +87,8 @@ fn run(args: &ArgMatches) -> Result<()> {
                     set_selection(&conn, root, &selection.unwrap(), &output)?;
                 }
             } else {
-                println!("{}", output);
+                let trailing_newline = atty::is(Stream::Stdout).then_some("\n").unwrap_or("");
+                print!("{}{}", output, trailing_newline);
             }
         }
     }

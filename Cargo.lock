@@ -229,6 +229,7 @@ name = "xcolor"
 version = "0.5.1"
 dependencies = [
  "anyhow",
+ "atty",
  "clap",
  "lazy_static",
  "nix",
