@@ -20,7 +20,7 @@ edition = "2018"
 anyhow = "1"
 nom = "7"
 clap = "2"
-nix = "0.22"
+nix = { version = "0.29", features = ["process", "fs"] }
 lazy_static = "1"
 
 [dependencies.x11]
