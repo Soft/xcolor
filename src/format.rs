@@ -47,7 +47,7 @@ enum FormatPart {
     },
 }
 
-fn literal<'a, E>(input: &'a str) -> IResult<&str, FormatPart, E>
+fn literal<'a, E>(input: &'a str) -> IResult<&'a str, FormatPart, E>
 where
     E: ParseError<&'a str>,
 {
@@ -56,7 +56,7 @@ where
     })(input)
 }
 
-fn channel<'a, E>(input: &'a str) -> IResult<&str, Channel, E>
+fn channel<'a, E>(input: &'a str) -> IResult<&'a str, Channel, E>
 where
     E: ParseError<&'a str>,
 {
@@ -67,7 +67,7 @@ where
     ))(input)
 }
 
-fn format<'a, E>(input: &'a str) -> IResult<&str, NumberFormat, E>
+fn format<'a, E>(input: &'a str) -> IResult<&'a str, NumberFormat, E>
 where
     E: ParseError<&'a str>,
 {
@@ -80,7 +80,7 @@ where
     ))(input)
 }
 
-fn pad<'a, E>(input: &'a str) -> IResult<&str, Pad, E>
+fn pad<'a, E>(input: &'a str) -> IResult<&'a str, Pad, E>
 where
     E: ParseError<&'a str> + FromExternalError<&'a str, ParseIntError>,
 {
@@ -88,7 +88,7 @@ where
     map(tuple((anychar, digit)), |(char, len)| Pad { char, len })(input)
 }
 
-fn expansion<'a, E>(input: &'a str) -> IResult<&str, FormatPart, E>
+fn expansion<'a, E>(input: &'a str) -> IResult<&'a str, FormatPart, E>
 where
     E: ParseError<&'a str> + FromExternalError<&'a str, ParseIntError>,
 {
@@ -105,7 +105,7 @@ where
     alt((escape, expansion))(input)
 }
 
-fn parse_format_string<'a, E>(input: &'a str) -> IResult<&str, FormatString, E>
+fn parse_format_string<'a, E>(input: &'a str) -> IResult<&'a str, FormatString, E>
 where
     E: ParseError<&'a str> + FromExternalError<&'a str, ParseIntError>,
 {

@@ -12,7 +12,7 @@ use xcb::xproto;
 use crate::atoms;
 
 pub fn into_daemon() -> Result<ForkResult> {
-    match unsafe {fork()}? {
+    match unsafe { fork() }? {
         parent @ ForkResult::Parent { .. } => Ok(parent),
         child @ ForkResult::Child => {
             unistd::setsid()?;

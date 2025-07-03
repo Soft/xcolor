@@ -5,12 +5,14 @@ use xcb::base::Connection;
 use xcb::xproto;
 
 use crate::color::{self, ARGB};
-use crate::draw::draw_magnifying_glass;
+use crate::draw::{draw_color_text, draw_magnifying_glass};
 use crate::pixel::PixelSquare;
 use crate::util::EnsureOdd;
 
 // Left mouse button
 const SELECTION_BUTTON: xproto::Button = 1;
+// ESC key code
+const ESC_KEY: u8 = 9;
 const GRAB_MASK: u16 = (xproto::EVENT_MASK_BUTTON_PRESS | xproto::EVENT_MASK_POINTER_MOTION) as u16;
 
 // Exclusively grabs the pointer so we get all its events
@@ -35,6 +37,25 @@ fn grab_pointer(conn: &Connection, root: u32, cursor: u32) -> Result<()> {
     Ok(())
 }
 
+// Exclusively grabs the keyboard so we get all its events
+fn grab_keyboard(conn: &Connection, root: u32) -> Result<()> {
+    let reply = xproto::grab_keyboard(
+        conn,
+        false,
+        root,
+        xbase::CURRENT_TIME,
+        xproto::GRAB_MODE_ASYNC as u8,
+        xproto::GRAB_MODE_ASYNC as u8,
+    )
+    .get_reply()?;
+
+    if reply.status() != xproto::GRAB_STATUS_SUCCESS as u8 {
+        return Err(anyhow!("Could not grab keyboard"));
+    }
+
+    Ok(())
+}
+
 // Updates the cursor for an _already grabbed pointer_
 fn update_cursor(conn: &Connection, cursor: u32) -> Result<()> {
     xproto::change_active_pointer_grab_checked(conn, cursor, xbase::CURRENT_TIME, GRAB_MASK)
@@ -48,9 +69,10 @@ fn create_new_xcursor(
     conn: &Connection,
     screenshot_pixels: &PixelSquare<&[ARGB]>,
     preview_width: u32,
+    center_color: ARGB,
 ) -> Result<u32> {
     Ok(unsafe {
-        let mut cursor_image = XcursorImageCreate(preview_width as i32, preview_width as i32);
+        let cursor_image = XcursorImageCreate(preview_width as i32, preview_width as i32);
 
         // set the "hot spot" - this is where the pointer actually is inside the image
         (*cursor_image).xhot = preview_width / 2;
@@ -73,6 +95,9 @@ fn create_new_xcursor(
 
         // draw our custom image
         draw_magnifying_glass(&mut cursor_pixels, screenshot_pixels, pixel_size);
+
+        // Draw color text on the cursor
+        draw_color_text(&mut cursor_pixels, center_color);
 
         // convert our XcursorImage into a cursor
         let cursor_id = XcursorImageLoadCursor(conn.get_raw_dpy(), cursor_image) as u32;
@@ -162,7 +187,11 @@ fn create_new_cursor(
 
     let (w, p) = get_window_rect_around_pointer(conn, screen, point, preview_width, scale)?;
     let pixels = PixelSquare::new(&p[..], w.into());
-    create_new_xcursor(conn, &pixels, preview_width)
+
+    // Get the center color (color at mouse position)
+    let center_color = pixels[(pixels.width() / 2, pixels.width() / 2)];
+
+    create_new_xcursor(conn, &pixels, preview_width, center_color)
 }
 
 pub fn wait_for_location(
@@ -177,6 +206,9 @@ pub fn wait_for_location(
     // grab the cursor to listen to all of its events
     let mut cursor = create_new_cursor(conn, screen, preview_width, scale, None)?;
     grab_pointer(conn, root, cursor)?;
+
+    // Try to grab keyboard, but don't fail if it doesn't work
+    let keyboard_grabbed = grab_keyboard(conn, root).is_ok();
 
     let result = loop {
         let event = conn.wait_for_event();
@@ -195,6 +227,14 @@ pub fn wait_for_location(
                             break Some(pixels[0]);
                         }
                         _ => {}
+                    }
+                }
+                xproto::KEY_PRESS => {
+                    if keyboard_grabbed {
+                        let event: &xproto::KeyPressEvent = unsafe { xbase::cast_event(&event) };
+                        if event.detail() == ESC_KEY {
+                            break None;
+                        }
                     }
                 }
                 xproto::MOTION_NOTIFY => {
@@ -219,6 +259,9 @@ pub fn wait_for_location(
     };
 
     xproto::ungrab_pointer(conn, xbase::CURRENT_TIME);
+    if keyboard_grabbed {
+        xproto::ungrab_keyboard(conn, xbase::CURRENT_TIME);
+    }
     xproto::free_cursor(conn, cursor);
     conn.flush();
 
